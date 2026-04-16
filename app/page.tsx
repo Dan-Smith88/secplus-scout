@@ -12,6 +12,8 @@ import {
   AlertTriangle,
   Search,
   ArrowRight,
+  CalendarDays,
+  BookOpen,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { domains as securityDomains } from "../lib/securityData";
@@ -103,6 +105,50 @@ function FocusRow({
   );
 }
 
+function PracticeMenuItem({
+  href,
+  icon: Icon,
+  title,
+  description,
+  recommended = false,
+  onClick,
+}: {
+  href: string;
+  icon: React.ElementType;
+  title: string;
+  description: string;
+  recommended?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className="group block rounded-2xl border border-white/8 bg-white/[0.02] px-4 py-3 transition hover:border-cyan-400/30 hover:bg-cyan-400/[0.08]"
+    >
+      <div className="flex items-start gap-3">
+        <div className="mt-0.5 rounded-xl border border-cyan-300/15 bg-cyan-400/10 p-2">
+          <Icon className="h-4 w-4 text-cyan-300" />
+        </div>
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="font-medium text-white">{title}</div>
+            {recommended && (
+              <span className="rounded-full border border-cyan-300/20 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-cyan-200">
+                Recommended
+              </span>
+            )}
+          </div>
+          <div className="mt-1 text-sm text-slate-400">{description}</div>
+        </div>
+
+        <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-slate-500 transition group-hover:text-cyan-200" />
+      </div>
+    </Link>
+  );
+}
+
 function getDomainStatus(progress: number) {
   if (progress === 0) return "Not started";
   if (progress < 70) return "In progress";
@@ -120,8 +166,8 @@ function getDomainAction(progress: number) {
 export default function HomePage() {
   const [progressStore, setProgressStore] = useState<StoredProgress>({});
   const [masteryStore, setMasteryStore] = useState<MasteryStore>({});
-  const [featuresOpen, setFeaturesOpen] = useState(false);
-  const featuresRef = useRef<HTMLDivElement | null>(null);
+  const [practiceOpen, setPracticeOpen] = useState(false);
+  const practiceRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     try {
@@ -138,10 +184,10 @@ export default function HomePage() {
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
-        featuresRef.current &&
-        !featuresRef.current.contains(event.target as Node)
+        practiceRef.current &&
+        !practiceRef.current.contains(event.target as Node)
       ) {
-        setFeaturesOpen(false);
+        setPracticeOpen(false);
       }
     }
 
@@ -178,13 +224,11 @@ export default function HomePage() {
     const records = Object.values(masteryStore);
     const seen = records.reduce((sum, r) => sum + r.seen, 0);
     const know = records.reduce((sum, r) => sum + r.know, 0);
-    const almost = records.reduce((sum, r) => sum + r.almost, 0);
     const missed = records.reduce((sum, r) => sum + r.missed, 0);
 
-    const masteryScore =
-      seen === 0 ? 0 : Math.round(((know + almost * 0.5) / seen) * 100);
+    const masteryScore = seen === 0 ? 0 : Math.round((know / seen) * 100);
 
-    return { seen, know, almost, missed, masteryScore };
+    return { seen, know, missed, masteryScore };
   }, [masteryStore]);
 
   const recentMissCount = masteryTotals.missed;
@@ -267,71 +311,75 @@ export default function HomePage() {
                 Search
               </Link>
 
-              <div className="relative" ref={featuresRef}>
+              <div className="relative" ref={practiceRef}>
                 <button
-                  onClick={() => setFeaturesOpen((prev) => !prev)}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-2 hover:bg-white/5"
+                  onClick={() => setPracticeOpen((prev) => !prev)}
+                  className={`inline-flex items-center gap-2 rounded-full px-3 py-2 transition ${
+                    practiceOpen
+                      ? "border border-cyan-300/30 bg-cyan-400/10 text-white shadow-[0_0_0_1px_rgba(34,211,238,0.08),0_10px_30px_rgba(2,132,199,0.18)]"
+                      : "border border-white/10 hover:bg-white/5"
+                  }`}
                   type="button"
+                  aria-expanded={practiceOpen}
+                  aria-haspopup="menu"
                 >
-                  More
-                  <ChevronDown className="h-4 w-4" />
+                  Practice
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      practiceOpen ? "rotate-180 text-cyan-200" : ""
+                    }`}
+                  />
                 </button>
 
-                {featuresOpen && (
-                  <div className="absolute right-0 z-30 mt-2 w-80 rounded-2xl border border-white/10 bg-[#0b1730] p-2 shadow-[0_20px_50px_rgba(0,0,0,0.45)]">
-                    <div className="px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-slate-500">
-                      Practice
+                {practiceOpen && (
+                  <div className="absolute right-0 z-30 mt-3 w-[360px] rounded-[28px] border border-cyan-300/15 bg-[#081936]/95 p-3 shadow-[0_24px_70px_rgba(0,0,0,0.55)] backdrop-blur-xl">
+                    <div className="px-2 pb-2 pt-1 text-[11px] uppercase tracking-[0.2em] text-slate-500">
+                      Practice shortcuts
                     </div>
 
-                    <Link
-                      href="/mastery/daily"
-                      onClick={() => setFeaturesOpen(false)}
-                      className="block rounded-xl px-3 py-3 text-sm text-white hover:bg-white/5"
-                    >
-                      <div className="font-medium">Daily Drill</div>
-                      <div className="mt-1 text-xs text-slate-400">
-                        Rotating acronym set that changes every day
-                      </div>
-                    </Link>
+                    <div className="space-y-2">
+                      <PracticeMenuItem
+                        href="/mastery/daily"
+                        icon={CalendarDays}
+                        title="Daily Drill"
+                        description="Today’s rotating 10-card set"
+                        recommended={recentMissCount === 0}
+                        onClick={() => setPracticeOpen(false)}
+                      />
 
-                    <Link
-                      href="/mastery/missed"
-                      onClick={() => setFeaturesOpen(false)}
-                      className="block rounded-xl px-3 py-3 text-sm text-white hover:bg-white/5"
-                    >
-                      <div className="font-medium">Missed Review</div>
-                      <div className="mt-1 text-xs text-slate-400">
-                        Revisit the acronyms you missed
-                      </div>
-                    </Link>
+                      <PracticeMenuItem
+                        href="/mastery/missed"
+                        icon={AlertTriangle}
+                        title="Missed Review"
+                        description="Retake terms you missed"
+                        recommended={recentMissCount > 0}
+                        onClick={() => setPracticeOpen(false)}
+                      />
+                    </div>
 
-                    <div className="my-2 h-px bg-white/10" />
+                    <div className="my-3 h-px bg-white/10" />
 
-                    <div className="px-3 py-2 text-[11px] uppercase tracking-[0.18em] text-slate-500">
+                    <div className="px-2 pb-2 pt-1 text-[11px] uppercase tracking-[0.2em] text-slate-500">
                       Reference
                     </div>
 
-                    <Link
-                      href="/mastery/confusion"
-                      onClick={() => setFeaturesOpen(false)}
-                      className="block rounded-xl px-3 py-3 text-sm text-white hover:bg-white/5"
-                    >
-                      <div className="font-medium">Confusion Pairs</div>
-                      <div className="mt-1 text-xs text-slate-400">
-                        Compare acronyms people mix up most
-                      </div>
-                    </Link>
+                    <div className="space-y-2">
+                      <PracticeMenuItem
+                        href="/mastery/confusion"
+                        icon={BrainCircuit}
+                        title="Confusion Pairs"
+                        description="Compare similar acronyms"
+                        onClick={() => setPracticeOpen(false)}
+                      />
 
-                    <Link
-                      href="/mastery/all"
-                      onClick={() => setFeaturesOpen(false)}
-                      className="block rounded-xl px-3 py-3 text-sm text-white hover:bg-white/5"
-                    >
-                      <div className="font-medium">All Acronyms</div>
-                      <div className="mt-1 text-xs text-slate-400">
-                        Full searchable acronym library
-                      </div>
-                    </Link>
+                      <PracticeMenuItem
+                        href="/mastery/all"
+                        icon={BookOpen}
+                        title="All Acronyms"
+                        description="Browse the full library"
+                        onClick={() => setPracticeOpen(false)}
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -482,7 +530,7 @@ export default function HomePage() {
                 icon={CheckCircle2}
                 title="Mastery"
                 value={`${masteryTotals.masteryScore}%`}
-                sub="know / almost / missed"
+                sub="know / missed"
                 href="/mastery"
               />
               <SummaryStat
