@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useMemo, useState } from "react";
 import { domains } from "../../../lib/securityData";
+import TopNav from "../../../components/TopNav";
 
 type FlatAcronym = {
   acronym: string;
@@ -12,100 +14,122 @@ type FlatAcronym = {
   domainName: string;
 };
 
-type PairGroup = {
-  title: string;
-  terms: string[];
-};
-
-function normalizeTerm(value: string) {
-  return value.trim().toUpperCase();
-}
-
-function parsePair(value: string) {
+function normalizePair(value: string) {
   return value
     .split("vs")
     .map((part) => part.trim())
-    .filter(Boolean);
-}
-
-function normalizePairTitle(value: string) {
-  const parts = parsePair(value)
-    .map((part) => part.trim())
-    .filter(Boolean);
-
-  if (parts.length < 2) return value.trim();
-
-  return `${parts[0]} vs ${parts[1]}`;
+    .filter(Boolean)
+    .sort((a, b) => a.localeCompare(b))
+    .join(" vs ");
 }
 
 export default function ConfusionPairsPage() {
-  const allItems: FlatAcronym[] = domains.flatMap((domain) =>
-    domain.acronyms.map((item) => ({
-      acronym: item.acronym,
-      full: item.full,
-      plain: item.plain,
-      confusion: item.confusion,
-      domainCode: domain.code,
-      domainName: domain.name,
-    }))
-  );
+  const [scope, setScope] = useState<"all" | "single">("all");
+  const [selectedCode, setSelectedCode] = useState(domains[0]?.code ?? "");
 
-  const acronymIndex = new Map<string, FlatAcronym>();
-  for (const item of allItems) {
-    acronymIndex.set(normalizeTerm(item.acronym), item);
-  }
+  const allItems: FlatAcronym[] = useMemo(() => {
+    return domains.flatMap((domain) =>
+      domain.acronyms.map((item) => ({
+        acronym: item.acronym,
+        full: item.full,
+        plain: item.plain,
+        confusion: item.confusion,
+        domainCode: domain.code,
+        domainName: domain.name,
+      }))
+    );
+  }, []);
 
-  const pairGroups: PairGroup[] = Array.from(
-    new Map(
-      allItems
+  const filteredItems = useMemo(() => {
+    if (scope === "all") return allItems;
+    return allItems.filter((item) => item.domainCode === selectedCode);
+  }, [allItems, scope, selectedCode]);
+
+  const groups = useMemo(() => {
+    return Object.values(
+      filteredItems
         .filter((item) => item.confusion && item.confusion.trim().length > 0)
-        .map((item) => {
-          const normalizedTitle = normalizePairTitle(item.confusion);
-          const terms = parsePair(item.confusion);
-
-          return [
-            normalizedTitle,
-            {
-              title: normalizedTitle,
-              terms,
-            },
-          ] as const;
-        })
-    ).values()
-  ).sort((a, b) => a.title.localeCompare(b.title));
+        .reduce<Record<string, { title: string; items: FlatAcronym[] }>>(
+          (acc, item) => {
+            const key = normalizePair(item.confusion);
+            if (!acc[key]) {
+              acc[key] = { title: key, items: [] };
+            }
+            acc[key].items.push(item);
+            return acc;
+          },
+          {}
+        )
+    ).sort((a, b) => a.title.localeCompare(b.title));
+  }, [filteredItems]);
 
   return (
-    <main className="min-h-screen bg-[#07111f] px-6 py-10 text-slate-100">
+    <main className="min-h-screen bg-[#07111f] px-6 py-4 text-slate-100">
       <div className="mx-auto max-w-6xl">
-        <Link
-          href="/mastery"
-          className="inline-flex rounded-full border border-white/10 px-4 py-2 text-sm hover:bg-white/5"
-        >
-          ← Back to Acronym Mastery
-        </Link>
+        <TopNav />
 
-        <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6">
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
           <div className="text-sm text-cyan-300">Confusion Pairs</div>
           <h1 className="mt-2 text-4xl font-semibold tracking-tight text-white">
-            Study the terms people mix up most
+            Compare the acronyms people mix up most
           </h1>
           <p className="mt-3 max-w-3xl text-slate-300">
-            This page compares confusing acronym pairs across all domains so you
-            can see both terms side by side and understand the difference.
+            Use all domains when you want a broader review. Switch to one domain
+            when one section keeps tripping you up.
           </p>
+
+          <div className="mt-6 flex flex-wrap items-end gap-4">
+            <div className="inline-flex rounded-2xl border border-white/10 bg-[#0b1730] p-1">
+              <button
+                onClick={() => setScope("all")}
+                className={`rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                  scope === "all"
+                    ? "bg-cyan-400 text-slate-950"
+                    : "text-slate-300 hover:bg-white/5"
+                }`}
+              >
+                All Domains
+              </button>
+              <button
+                onClick={() => setScope("single")}
+                className={`rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                  scope === "single"
+                    ? "bg-cyan-400 text-slate-950"
+                    : "text-slate-300 hover:bg-white/5"
+                }`}
+              >
+                Single Domain
+              </button>
+            </div>
+
+            {scope === "single" && (
+              <div className="min-w-[280px]">
+                <label className="mb-2 block text-sm text-slate-400">
+                  Select a domain
+                </label>
+                <select
+                  value={selectedCode}
+                  onChange={(e) => setSelectedCode(e.target.value)}
+                  className="w-full rounded-2xl border border-white/10 bg-[#0b1730] px-4 py-3 text-white outline-none focus:border-cyan-300/30"
+                >
+                  {domains.map((domain) => (
+                    <option key={domain.code} value={domain.code}>
+                      {domain.code} · {domain.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="mt-8 grid gap-6">
-          {pairGroups.map((group) => {
-            const pairItems = group.terms.map((term) => {
-              const match = acronymIndex.get(normalizeTerm(term));
-              return {
-                requested: term,
-                item: match ?? null,
-              };
-            });
-
-            return (
+        <div className="mt-6 grid gap-6">
+          {groups.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-white/10 bg-white/5 p-6 text-slate-400">
+              No confusion pairs found for this scope.
+            </div>
+          ) : (
+            groups.map((group) => (
               <div
                 key={group.title}
                 className="rounded-3xl border border-white/10 bg-white/5 p-6"
@@ -115,46 +139,27 @@ export default function ConfusionPairsPage() {
                 </h2>
 
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  {pairItems.map(({ requested, item }) =>
-                    item ? (
-                      <div
-                        key={requested}
-                        className="rounded-2xl border border-white/10 bg-[#0b1730] p-4"
-                      >
-                        <div className="text-sm text-cyan-300">
-                          {item.domainName}
-                        </div>
-                        <div className="mt-1 text-xl font-semibold text-white">
-                          {item.acronym}
-                        </div>
-                        <div className="mt-1 text-cyan-200">{item.full}</div>
-                        <div className="mt-3 text-sm leading-6 text-slate-300">
-                          {item.plain}
-                        </div>
+                  {group.items.map((item) => (
+                    <div
+                      key={`${item.domainCode}:${item.acronym}`}
+                      className="rounded-2xl border border-white/10 bg-[#0b1730] p-4"
+                    >
+                      <div className="text-sm text-cyan-300">
+                        {item.domainCode} · {item.domainName}
                       </div>
-                    ) : (
-                      <div
-                        key={requested}
-                        className="rounded-2xl border border-dashed border-white/10 bg-[#0b1730] p-4"
-                      >
-                        <div className="text-sm text-amber-200">
-                          Acronym not loaded yet
-                        </div>
-                        <div className="mt-2 text-xl font-semibold text-white">
-                          {requested}
-                        </div>
-                        <div className="mt-3 text-sm leading-6 text-slate-400">
-                          This side of the confusion pair is referenced in your
-                          data, but its full acronym entry has not been added to
-                          the master dataset yet.
-                        </div>
+                      <div className="mt-1 text-xl font-semibold text-white">
+                        {item.acronym}
                       </div>
-                    )
-                  )}
+                      <div className="mt-1 text-cyan-200">{item.full}</div>
+                      <div className="mt-3 text-sm leading-6 text-slate-300">
+                        {item.plain}
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
-            );
-          })}
+            ))
+          )}
         </div>
       </div>
     </main>

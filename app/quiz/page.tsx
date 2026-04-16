@@ -2,188 +2,131 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { BookOpenCheck, Layers3 } from "lucide-react";
 import { domains } from "../../lib/securityData";
+import TopNav from "../../components/TopNav";
 
-function shuffleArray<T>(items: T[]) {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
+export default function QuizLauncherPage() {
+  const [scope, setScope] = useState<"all" | "single">("all");
+  const [selectedCode, setSelectedCode] = useState(domains[0]?.code ?? "");
 
-const customQuizChoices: Record<string, string[]> = {
-  MFA: [
-    "Multifactor Authentication",
-    "Multi-Factor Authorization",
-    "Multiple Form Authentication",
-    "Role-Based Access Control",
-  ],
-  RBAC: [
-    "Role-Based Access Control",
-    "Rule-Based Access Configuration",
-    "Remote-Based Authentication Control",
-    "Multifactor Authentication",
-  ],
-  CIA: [
-    "Confidentiality, Integrity, Availability",
-    "Confidentiality, Inspection, Access",
-    "Control, Identity, Authorization",
-    "Role-Based Access Control",
-  ],
-};
+  const launchHref = useMemo(() => {
+    if (scope === "all") return "/quiz/domain?code=all";
+    return `/quiz/domain?code=${encodeURIComponent(selectedCode)}`;
+  }, [scope, selectedCode]);
 
-export default function QuizPage() {
-  const searchParams = useSearchParams();
-  const domainCode = searchParams.get("domain");
-  const term = searchParams.get("term");
-
-  const target = useMemo(() => {
-    const allAcronyms = domains.flatMap((domain) =>
-      domain.acronyms.map((item) => ({
-        ...item,
-        domainCode: domain.code,
-        domainName: domain.name,
-      }))
-    );
-
-    return allAcronyms.find(
-      (item) =>
-        item.domainCode === domainCode &&
-        item.acronym.toLowerCase() === (term || "").toLowerCase()
-    );
-  }, [domainCode, term]);
-
-  const choices = useMemo(() => {
-    if (!target) return [];
-
-    const manualChoices = customQuizChoices[target.acronym];
-    if (manualChoices) {
-      return shuffleArray(manualChoices);
-    }
-
-    const distractors = domains
-      .flatMap((domain) => domain.acronyms)
-      .filter((item) => item.acronym !== target.acronym)
-      .slice(0, 3)
-      .map((item) => item.full);
-
-    return shuffleArray([target.full, ...distractors]);
-  }, [target]);
-
-  const [selected, setSelected] = useState("");
-  const [submitted, setSubmitted] = useState(false);
-
-  if (!target) {
-    return (
-      <main className="min-h-screen bg-[#07111f] px-6 py-10 text-slate-100">
-        <div className="mx-auto max-w-3xl">
-          <Link
-            href="/"
-            className="inline-flex rounded-full border border-white/10 px-4 py-2 text-sm hover:bg-white/5"
-          >
-            ← Back to dashboard
-          </Link>
-
-          <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6">
-            <h1 className="text-3xl font-semibold text-white">
-              Quiz not found
-            </h1>
-            <p className="mt-3 text-slate-300">
-              The quiz link is missing the domain or acronym.
-            </p>
-          </div>
-        </div>
-      </main>
-    );
-  }
-
-  const isCorrect = selected === target.full;
+  const selectedDomain = domains.find((d) => d.code === selectedCode) ?? null;
 
   return (
-    <main className="min-h-screen bg-[#07111f] px-6 py-10 text-slate-100">
-      <div className="mx-auto max-w-3xl">
-        <Link
-          href={`/study/${encodeURIComponent(domainCode || "")}`}
-          className="inline-flex rounded-full border border-white/10 px-4 py-2 text-sm hover:bg-white/5"
-        >
-          ← Back to study page
-        </Link>
+    <main className="min-h-screen bg-[#07111f] px-6 py-4 text-slate-100">
+      <div className="mx-auto max-w-6xl">
+        <TopNav />
 
-        <div className="mt-8 rounded-3xl border border-white/10 bg-white/5 p-6">
-          <div className="text-sm text-cyan-300">Quick quiz</div>
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+          <div className="text-sm text-cyan-300">Quizzes</div>
           <h1 className="mt-2 text-4xl font-semibold tracking-tight text-white">
-            What does {target.acronym} stand for?
+            Choose your quiz scope
           </h1>
-          <p className="mt-3 text-slate-400">
-            Choose the best answer.
+          <p className="mt-3 max-w-3xl text-slate-300">
+            Use all domains when you want broad recall pressure. Use a single
+            domain when you want focused drilling on a weak area.
           </p>
-        </div>
 
-        <div className="mt-6 grid gap-4">
-          {choices.map((choice) => (
+          <div className="mt-6 inline-flex rounded-2xl border border-white/10 bg-[#0b1730] p-1">
             <button
-              key={choice}
-              onClick={() => !submitted && setSelected(choice)}
-              className={`rounded-3xl border p-5 text-left transition ${
-                selected === choice
-                  ? "border-cyan-300/40 bg-cyan-400/10"
-                  : "border-white/10 bg-[#0b1730] hover:bg-white/5"
+              onClick={() => setScope("all")}
+              className={`rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                scope === "all"
+                  ? "bg-cyan-400 text-slate-950"
+                  : "text-slate-300 hover:bg-white/5"
               }`}
             >
-              {choice}
+              All Domains
             </button>
-          ))}
-        </div>
+            <button
+              onClick={() => setScope("single")}
+              className={`rounded-2xl px-4 py-2 text-sm font-medium transition ${
+                scope === "single"
+                  ? "bg-cyan-400 text-slate-950"
+                  : "text-slate-300 hover:bg-white/5"
+              }`}
+            >
+              Single Domain
+            </button>
+          </div>
 
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button
-            onClick={() => setSubmitted(true)}
-            disabled={!selected}
-            className="rounded-2xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Submit answer
-          </button>
+          {scope === "single" && (
+            <div className="mt-5 max-w-md">
+              <label className="mb-2 block text-sm text-slate-400">
+                Select a domain
+              </label>
+              <select
+                value={selectedCode}
+                onChange={(e) => setSelectedCode(e.target.value)}
+                className="w-full rounded-2xl border border-white/10 bg-[#0b1730] px-4 py-3 text-white outline-none focus:border-cyan-300/30"
+              >
+                {domains.map((domain) => (
+                  <option key={domain.code} value={domain.code}>
+                    {domain.code} · {domain.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
-          <button
-            onClick={() => {
-              setSelected("");
-              setSubmitted(false);
-            }}
-            className="rounded-2xl border border-white/10 px-5 py-3 text-white hover:bg-white/5"
-          >
-            Reset
-          </button>
-        </div>
+          <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="rounded-3xl border border-white/10 bg-[#0b1730] p-5">
+              <div className="flex items-center gap-3">
+                <div className="rounded-2xl border border-cyan-300/15 bg-cyan-400/10 p-2.5">
+                  {scope === "all" ? (
+                    <Layers3 className="h-5 w-5 text-cyan-300" />
+                  ) : (
+                    <BookOpenCheck className="h-5 w-5 text-cyan-300" />
+                  )}
+                </div>
+                <div>
+                  <div className="text-sm text-cyan-300">Current selection</div>
+                  <div className="text-xl font-semibold text-white">
+                    {scope === "all"
+                      ? "Mixed quiz across all domains"
+                      : selectedDomain?.name}
+                  </div>
+                </div>
+              </div>
 
-        {submitted && (
-          <div
-            className={`mt-6 rounded-3xl border p-6 ${
-              isCorrect
-                ? "border-emerald-300/20 bg-emerald-400/10"
-                : "border-rose-300/20 bg-rose-400/10"
-            }`}
-          >
-            <div className="text-2xl font-semibold text-white">
-              {isCorrect ? "Correct" : "Not quite"}
+              <p className="mt-4 text-sm leading-6 text-slate-300">
+                {scope === "all"
+                  ? "This will mix every loaded acronym into one larger quiz."
+                  : "This will run a full quiz only for the selected domain."}
+              </p>
+
+              <Link
+                href={launchHref}
+                className="mt-5 inline-flex items-center rounded-2xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 hover:bg-cyan-300"
+              >
+                Start quiz
+              </Link>
             </div>
 
-            <p className="mt-3 text-slate-200">
-              <span className="font-semibold">Answer:</span> {target.full}
-            </p>
+            <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-5">
+              <div className="text-sm text-slate-400">Best use</div>
+              <div className="mt-2 text-lg font-semibold text-white">
+                Quick rule of thumb
+              </div>
 
-            <p className="mt-3 text-slate-200">
-              <span className="font-semibold">Meaning:</span> {target.plain}
-            </p>
-
-            <p className="mt-3 text-slate-200">
-              <span className="font-semibold">Common confusion:</span>{" "}
-              {target.confusion}
-            </p>
+              <div className="mt-4 space-y-3 text-sm leading-6 text-slate-300">
+                <div>
+                  <span className="font-medium text-white">All Domains:</span>{" "}
+                  use when you want exam-style pressure and mixed recall.
+                </div>
+                <div>
+                  <span className="font-medium text-white">Single Domain:</span>{" "}
+                  use when one area is dragging your readiness score down.
+                </div>
+              </div>
+            </div>
           </div>
-        )}
+        </div>
       </div>
     </main>
   );
