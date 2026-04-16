@@ -58,18 +58,16 @@ export default function MasteryHomePage() {
     const records = Object.values(store);
     const seen = records.reduce((sum, r) => sum + r.seen, 0);
     const know = records.reduce((sum, r) => sum + r.know, 0);
-    const almost = records.reduce((sum, r) => sum + r.almost, 0);
     const missed = records.reduce((sum, r) => sum + r.missed, 0);
 
-    const masteryScore =
-      seen === 0 ? 0 : Math.round(((know + almost * 0.5) / seen) * 100);
+    const masteryScore = seen === 0 ? 0 : Math.round((know / seen) * 100);
 
-    return { seen, know, almost, missed, masteryScore };
+    return { seen, know, missed, masteryScore };
   }, [store]);
 
   function resetAllMastery() {
     const confirmed = window.confirm(
-      "Reset all Acronym Mastery history? This will clear know, almost, and missed tracking."
+      "Reset all Acronym Mastery history? This will clear know and missed tracking."
     );
 
     if (!confirmed) return;
@@ -120,7 +118,7 @@ export default function MasteryHomePage() {
           </div>
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-4">
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
             <div className="text-sm text-slate-400">Mastery score</div>
             <div className="mt-1 text-3xl font-semibold text-white">
@@ -132,13 +130,6 @@ export default function MasteryHomePage() {
             <div className="text-sm text-slate-400">Know</div>
             <div className="mt-1 text-3xl font-semibold text-white">
               {totals.know}
-            </div>
-          </div>
-
-          <div className="rounded-3xl border border-white/10 bg-white/5 p-5">
-            <div className="text-sm text-slate-400">Almost</div>
-            <div className="mt-1 text-3xl font-semibold text-white">
-              {totals.almost}
             </div>
           </div>
 
@@ -157,7 +148,7 @@ export default function MasteryHomePage() {
           >
             <div className="text-sm text-cyan-200">Daily Drill</div>
             <h2 className="mt-2 text-2xl font-semibold text-white">
-              Rotating 20-card drill
+              Rotating 10-card drill
             </h2>
             <p className="mt-3 text-sm leading-6 text-slate-200">
               A daily set of acronyms that rotates every day. It prioritizes new,
