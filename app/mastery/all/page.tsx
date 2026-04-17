@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState } from "react";
 import { domains } from "../../../lib/securityData";
 import TopNav from "../../../components/TopNav";
@@ -47,6 +48,13 @@ export default function AllAcronymsPage() {
     <main className="min-h-screen bg-[#07111f] px-6 py-4 text-slate-100">
       <div className="mx-auto max-w-6xl">
         <TopNav />
+
+        <Link
+          href="/study"
+          className="mb-6 inline-flex rounded-full border border-white/10 px-4 py-2 text-sm hover:bg-white/5"
+        >
+          ← Back to Study
+        </Link>
 
         <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
           <div className="text-sm text-cyan-300">All Acronyms</div>

@@ -9,6 +9,7 @@ import {
   upsertMasteryResult,
 } from "../../../lib/masteryStorage";
 import { MasteryStore } from "../../../lib/masteryTypes";
+import TopNav from "../../../components/TopNav";
 
 const DAILY_DRILL_SIZE = 10;
 
@@ -187,31 +188,37 @@ export default function DailyDrillPage() {
 
   if (!mounted || !dateKey) {
     return (
-      <main className="min-h-screen bg-[#07111f] px-6 py-10 text-slate-100">
-        <div className="mx-auto max-w-6xl">Loading daily drill...</div>
+      <main className="min-h-screen bg-[#07111f] px-6 py-4 text-slate-100">
+        <div className="mx-auto max-w-6xl">
+          <TopNav />
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
+            Loading daily drill...
+          </div>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen bg-[#07111f] px-6 py-10 text-slate-100">
+    <main className="min-h-screen bg-[#07111f] px-6 py-4 text-slate-100">
       <div className="mx-auto max-w-6xl">
+        <TopNav />
+
         <Link
-          href="/mastery"
-          className="inline-flex rounded-full border border-white/10 px-4 py-2 text-sm hover:bg-white/5"
+          href="/study"
+          className="mb-6 inline-flex rounded-full border border-white/10 px-4 py-2 text-sm hover:bg-white/5"
         >
-          ← Back to Acronym Mastery
+          ← Back to Study
         </Link>
 
-        <div className="mt-8 rounded-3xl border border-cyan-300/20 bg-cyan-400/10 p-6">
+        <div className="rounded-3xl border border-cyan-300/20 bg-cyan-400/10 p-6">
           <div className="text-sm text-cyan-200">Daily Drill</div>
           <h1 className="mt-2 text-4xl font-semibold tracking-tight text-white">
             Today’s rotating acronym set
           </h1>
           <p className="mt-3 max-w-3xl text-slate-200">
             This page gives you a rotating drill that changes every day. It
-            prioritizes new, weak, and recently missed acronyms, so the set is
-            not static and should evolve as you improve.
+            prioritizes new, weak, and recently missed acronyms.
           </p>
           <div className="mt-4 text-sm text-cyan-100">
             Today’s rotation: {dateKey} • {dailyDeck.length} flashcards
@@ -332,16 +339,14 @@ export default function DailyDrillPage() {
             </div>
           ) : (
             <div>
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div>
-                  <h2 className="text-2xl font-semibold text-white">
-                    Answer review
-                  </h2>
-                  <p className="mt-2 text-slate-300">
-                    Here is the full set you just completed, along with how you
-                    marked each one.
-                  </p>
-                </div>
+              <div>
+                <h2 className="text-2xl font-semibold text-white">
+                  Answer review
+                </h2>
+                <p className="mt-2 text-slate-300">
+                  Here is the full set you just completed, along with how you
+                  marked each one.
+                </p>
               </div>
 
               <div className="mt-6 space-y-4">
