@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import { domains } from "../../../lib/securityData";
 import TopNav from "../../../components/TopNav";
@@ -14,20 +13,63 @@ type FlatAcronym = {
   domainName: string;
 };
 
-function normalizePair(value: string) {
+type ConfusionGroup = {
+  key: string;
+  title: string;
+  pair: string[];
+  items: FlatAcronym[];
+};
+
+function parseConfusionParts(value: string) {
   return value
-    .split("vs")
+    .split(/vs/i)
     .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function normalizeAcronym(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function normalizePairKey(parts: string[]) {
+  return [...parts]
+    .map((part) => normalizeAcronym(part))
     .filter(Boolean)
     .sort((a, b) => a.localeCompare(b))
-    .join(" vs ");
+    .join("__");
+}
+
+function findBestAcronymMatch(
+  target: string,
+  items: FlatAcronym[]
+): FlatAcronym | null {
+  const normalizedTarget = normalizeAcronym(target);
+
+  if (!normalizedTarget) return null;
+
+  const exact = items.find(
+    (item) => normalizeAcronym(item.acronym) === normalizedTarget
+  );
+  if (exact) return exact;
+
+  const containsTarget = items.find((item) =>
+    normalizeAcronym(item.acronym).includes(normalizedTarget)
+  );
+  if (containsTarget) return containsTarget;
+
+  const targetContainsItem = items.find((item) =>
+    normalizedTarget.includes(normalizeAcronym(item.acronym))
+  );
+  if (targetContainsItem) return targetContainsItem;
+
+  return null;
 }
 
 export default function ConfusionPairsPage() {
   const [scope, setScope] = useState<"all" | "single">("all");
   const [selectedCode, setSelectedCode] = useState(domains[0]?.code ?? "");
 
-  const allItems: FlatAcronym[] = useMemo(() => {
+  const allItems = useMemo<FlatAcronym[]>(() => {
     return domains.flatMap((domain) =>
       domain.acronyms.map((item) => ({
         acronym: item.acronym,
@@ -40,28 +82,77 @@ export default function ConfusionPairsPage() {
     );
   }, []);
 
-  const filteredItems = useMemo(() => {
+  const scopedItems = useMemo(() => {
     if (scope === "all") return allItems;
     return allItems.filter((item) => item.domainCode === selectedCode);
   }, [allItems, scope, selectedCode]);
 
-  const groups = useMemo(() => {
-    return Object.values(
-      filteredItems
-        .filter((item) => item.confusion && item.confusion.trim().length > 0)
-        .reduce<Record<string, { title: string; items: FlatAcronym[] }>>(
-          (acc, item) => {
-            const key = normalizePair(item.confusion);
-            if (!acc[key]) {
-              acc[key] = { title: key, items: [] };
+  const groups = useMemo<ConfusionGroup[]>(() => {
+    const grouped = scopedItems
+      .filter((item) => item.confusion && item.confusion.trim().length > 0)
+      .reduce<Record<string, ConfusionGroup>>((acc, item) => {
+        const parts = parseConfusionParts(item.confusion);
+        if (parts.length < 2) return acc;
+
+        const key = normalizePairKey(parts);
+
+        if (!acc[key]) {
+          acc[key] = {
+            key,
+            title: parts.join(" vs "),
+            pair: parts.slice(0, 2),
+            items: [],
+          };
+        }
+
+        const alreadyExists = acc[key].items.some(
+          (existing) =>
+            normalizeAcronym(existing.acronym) === normalizeAcronym(item.acronym)
+        );
+
+        if (!alreadyExists) {
+          acc[key].items.push(item);
+        }
+
+        return acc;
+      }, {});
+
+    return Object.values(grouped)
+      .map((group) => {
+        const completedItems: FlatAcronym[] = [];
+
+        for (const pairPart of group.pair) {
+          const existingInGroup = group.items.find(
+            (item) =>
+              normalizeAcronym(item.acronym) === normalizeAcronym(pairPart)
+          );
+
+          if (existingInGroup) {
+            completedItems.push(existingInGroup);
+            continue;
+          }
+
+          const fallbackFromAll = findBestAcronymMatch(pairPart, allItems);
+          if (fallbackFromAll) {
+            const duplicate = completedItems.some(
+              (item) =>
+                normalizeAcronym(item.acronym) ===
+                normalizeAcronym(fallbackFromAll.acronym)
+            );
+
+            if (!duplicate) {
+              completedItems.push(fallbackFromAll);
             }
-            acc[key].items.push(item);
-            return acc;
-          },
-          {}
-        )
-    ).sort((a, b) => a.title.localeCompare(b.title));
-  }, [filteredItems]);
+          }
+        }
+
+        return {
+          ...group,
+          items: completedItems,
+        };
+      })
+      .sort((a, b) => a.title.localeCompare(b.title));
+  }, [scopedItems, allItems]);
 
   return (
     <main className="min-h-screen bg-[#07111f] px-6 py-4 text-slate-100">
@@ -131,31 +222,59 @@ export default function ConfusionPairsPage() {
           ) : (
             groups.map((group) => (
               <div
-                key={group.title}
+                key={group.key}
                 className="rounded-3xl border border-white/10 bg-white/5 p-6"
               >
                 <h2 className="text-2xl font-semibold text-white">
-                  {group.title}
+                  {group.pair.join(" vs ")}
                 </h2>
 
                 <div className="mt-4 grid gap-4 md:grid-cols-2">
-                  {group.items.map((item) => (
-                    <div
-                      key={`${item.domainCode}:${item.acronym}`}
-                      className="rounded-2xl border border-white/10 bg-[#0b1730] p-4"
-                    >
-                      <div className="text-sm text-cyan-300">
-                        {item.domainCode} · {item.domainName}
+                  {group.pair.map((pairPart) => {
+                    const matchedItem =
+                      group.items.find(
+                        (item) =>
+                          normalizeAcronym(item.acronym) ===
+                          normalizeAcronym(pairPart)
+                      ) ?? findBestAcronymMatch(pairPart, allItems);
+
+                    if (!matchedItem) {
+                      return (
+                        <div
+                          key={`${group.key}:${pairPart}`}
+                          className="rounded-2xl border border-dashed border-amber-300/20 bg-[#0b1730] p-4"
+                        >
+                          <div className="text-sm text-amber-200">
+                            {pairPart}
+                          </div>
+                          <div className="mt-2 text-sm text-slate-400">
+                            No matching acronym definition was found in the data
+                            for this term.
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div
+                        key={`${matchedItem.domainCode}:${matchedItem.acronym}:${group.key}`}
+                        className="rounded-2xl border border-white/10 bg-[#0b1730] p-4"
+                      >
+                        <div className="text-sm text-cyan-300">
+                          {matchedItem.domainCode} · {matchedItem.domainName}
+                        </div>
+                        <div className="mt-1 text-xl font-semibold text-white">
+                          {matchedItem.acronym}
+                        </div>
+                        <div className="mt-1 text-cyan-200">
+                          {matchedItem.full}
+                        </div>
+                        <div className="mt-3 text-sm leading-6 text-slate-300">
+                          {matchedItem.plain}
+                        </div>
                       </div>
-                      <div className="mt-1 text-xl font-semibold text-white">
-                        {item.acronym}
-                      </div>
-                      <div className="mt-1 text-cyan-200">{item.full}</div>
-                      <div className="mt-3 text-sm leading-6 text-slate-300">
-                        {item.plain}
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             ))

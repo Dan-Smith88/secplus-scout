@@ -7,6 +7,7 @@ import { domains } from "../../../lib/securityData";
 import TopNav from "../../../components/TopNav";
 
 const STORAGE_KEY = "secplus-domain-progress-v1";
+const MIXED_QUIZ_SIZE = 15;
 
 type Answers = Record<string, string>;
 type QuizItem = {
@@ -29,6 +30,11 @@ function shuffleArray<T>(items: readonly T[]): T[] {
   return copy;
 }
 
+function getRandomSubset<T>(items: readonly T[], size: number): T[] {
+  if (items.length <= size) return shuffleArray(items);
+  return shuffleArray(items).slice(0, size);
+}
+
 export default function DomainQuizPage() {
   const searchParams = useSearchParams();
   const code = decodeURIComponent(searchParams.get("code") || "");
@@ -47,18 +53,18 @@ export default function DomainQuizPage() {
     );
   }, [code, isMixedQuiz]);
 
-  const quizItems = useMemo<QuizItem[]>(() => {
-    if (isMixedQuiz) {
-      return domains.flatMap((domain) =>
-        domain.acronyms.map((item) => ({
-          ...item,
-          domainCode: domain.code,
-          domainName: domain.name,
-          domainWeight: domain.weight,
-        }))
-      );
-    }
+  const allMixedItems = useMemo<QuizItem[]>(() => {
+    return domains.flatMap((domain) =>
+      domain.acronyms.map((item) => ({
+        ...item,
+        domainCode: domain.code,
+        domainName: domain.name,
+        domainWeight: domain.weight,
+      }))
+    );
+  }, []);
 
+  const fullSingleDomainItems = useMemo<QuizItem[]>(() => {
     if (!singleDomain) return [];
 
     return singleDomain.acronyms.map((item) => ({
@@ -67,7 +73,7 @@ export default function DomainQuizPage() {
       domainName: singleDomain.name,
       domainWeight: singleDomain.weight,
     }));
-  }, [isMixedQuiz, singleDomain]);
+  }, [singleDomain]);
 
   const [mounted, setMounted] = useState(false);
   const [answers, setAnswers] = useState<Answers>({});
@@ -75,10 +81,26 @@ export default function DomainQuizPage() {
   const [shuffledChoices, setShuffledChoices] = useState<Record<string, string[]>>(
     {}
   );
+  const [mixedQuizItems, setMixedQuizItems] = useState<QuizItem[]>([]);
+
+  const quizItems = isMixedQuiz ? mixedQuizItems : fullSingleDomainItems;
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+
+    if (isMixedQuiz) {
+      setMixedQuizItems(getRandomSubset(allMixedItems, MIXED_QUIZ_SIZE));
+    } else {
+      setMixedQuizItems([]);
+    }
+
+    setAnswers({});
+    setSubmitted(false);
+  }, [mounted, isMixedQuiz, allMixedItems, code]);
 
   useEffect(() => {
     if (!mounted || quizItems.length === 0) return;
@@ -105,15 +127,35 @@ export default function DomainQuizPage() {
     }));
   }
 
+  function buildChoiceMap(items: QuizItem[]) {
+    const result: Record<string, string[]> = {};
+    for (const item of items) {
+      result[itemKey(item)] = shuffleArray(item.quizChoices);
+    }
+    return result;
+  }
+
   function resetQuiz() {
     setAnswers({});
     setSubmitted(false);
 
-    const result: Record<string, string[]> = {};
-    for (const item of quizItems) {
-      result[itemKey(item)] = shuffleArray(item.quizChoices);
+    if (isMixedQuiz) {
+      const nextItems = getRandomSubset(allMixedItems, MIXED_QUIZ_SIZE);
+      setMixedQuizItems(nextItems);
+      setShuffledChoices(buildChoiceMap(nextItems));
+    } else {
+      setShuffledChoices(buildChoiceMap(fullSingleDomainItems));
     }
-    setShuffledChoices(result);
+  }
+
+  function generateAnotherMixedQuiz() {
+    if (!isMixedQuiz) return;
+
+    const nextItems = getRandomSubset(allMixedItems, MIXED_QUIZ_SIZE);
+    setMixedQuizItems(nextItems);
+    setAnswers({});
+    setSubmitted(false);
+    setShuffledChoices(buildChoiceMap(nextItems));
   }
 
   if (!isMixedQuiz && !singleDomain) {
@@ -199,7 +241,7 @@ export default function DomainQuizPage() {
               </h1>
               <p className="mt-3 max-w-2xl text-slate-300">
                 {isMixedQuiz
-                  ? "This quiz mixes acronyms from every loaded domain."
+                  ? "This quiz pulls a random 15-question set from every loaded domain. Finish it, then generate another random set if you want more reps."
                   : "Answer every acronym in this domain, then submit to see your percentage and review missed items."}
               </p>
             </div>
@@ -243,7 +285,7 @@ export default function DomainQuizPage() {
 
             return (
               <div
-                key={key}
+                key={`${key}:${index}`}
                 className="rounded-3xl border border-white/10 bg-[#0b1730] p-6"
               >
                 <div className="mb-4 flex flex-wrap items-start justify-between gap-4">
@@ -330,7 +372,7 @@ export default function DomainQuizPage() {
             onClick={resetQuiz}
             className="rounded-2xl border border-white/10 px-5 py-3 text-white hover:bg-white/5"
           >
-            Reset
+            {isMixedQuiz ? "Randomize this quiz" : "Reset"}
           </button>
         </div>
 
@@ -344,15 +386,26 @@ export default function DomainQuizPage() {
               Score: <span className="font-semibold text-white">{percentage}%</span>
             </p>
 
+            {isMixedQuiz && (
+              <div className="mt-5">
+                <button
+                  onClick={generateAnotherMixedQuiz}
+                  className="rounded-2xl bg-cyan-400 px-5 py-3 font-semibold text-slate-950 hover:bg-cyan-300"
+                >
+                  Take another random 15-question quiz
+                </button>
+              </div>
+            )}
+
             {wrongItems.length > 0 ? (
               <div className="mt-6">
                 <h3 className="text-xl font-semibold text-white">
                   Review missed acronyms
                 </h3>
                 <div className="mt-4 grid gap-4">
-                  {wrongItems.map((item) => (
+                  {wrongItems.map((item, index) => (
                     <div
-                      key={itemKey(item)}
+                      key={`${itemKey(item)}:wrong:${index}`}
                       className="rounded-2xl border border-white/10 bg-[#0b1730] p-4"
                     >
                       <div className="text-sm text-cyan-300">

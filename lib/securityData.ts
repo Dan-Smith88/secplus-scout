@@ -142,7 +142,7 @@ export const domains: Domain[] = [
         acronym: "SQLi",
         full: "SQL Injection",
         plain:
-          "A web attack where malicious SQL is inserted into an application input field.",
+          "A web attack where malicious SQL is inserted into an application input field to interfere with database queries.",
         confusion: "SQLi vs XSS",
         quizChoices: [
           "SQL Injection",
@@ -168,7 +168,7 @@ export const domains: Domain[] = [
         acronym: "CSRF",
         full: "Cross-site Request Forgery",
         plain:
-          "An attack that tricks a user browser into sending unwanted requests to a trusted site.",
+          "An attack that tricks an authenticated user's browser into sending unwanted requests to a trusted site.",
         confusion: "CSRF vs XSS",
         quizChoices: [
           "Cross-site Request Forgery",
@@ -207,7 +207,7 @@ export const domains: Domain[] = [
         acronym: "IoC",
         full: "Indicators of Compromise",
         plain:
-          "Evidence suggesting a system or account may have been compromised.",
+          "Evidence suggesting a system, account, or network may have been compromised.",
         confusion: "IoC vs CVE",
         quizChoices: [
           "Indicators of Compromise",
@@ -318,6 +318,19 @@ export const domains: Domain[] = [
         ],
       },
       {
+        acronym: "VLAN",
+        full: "Virtual Local Area Network",
+        plain:
+          "A logical segmentation of a switched network into separate broadcast domains without requiring separate physical networks.",
+        confusion: "VPN vs VLAN",
+        quizChoices: [
+          "Virtual Local Area Network",
+          "Verified Local Access Node",
+          "Virtual Layered Access Network",
+          "Variable LAN",
+        ],
+      },
+      {
         acronym: "IPSec",
         full: "Internet Protocol Security",
         plain:
@@ -334,13 +347,26 @@ export const domains: Domain[] = [
         acronym: "TLS",
         full: "Transport Layer Security",
         plain:
-          "A protocol used to secure network communications in transit.",
+          "A protocol used to secure communications in transit and protect against eavesdropping, tampering, and message forgery.",
         confusion: "TLS vs SSL",
         quizChoices: [
           "Transport Layer Security",
           "Trusted Layer Service",
           "Transmission Link Security",
           "Token Layer Security",
+        ],
+      },
+      {
+        acronym: "SSL",
+        full: "Secure Sockets Layer",
+        plain:
+          "A legacy predecessor to TLS for securing communications in transit; included for comparison, but deprecated for modern use.",
+        confusion: "TLS vs SSL",
+        quizChoices: [
+          "Secure Sockets Layer",
+          "Secure Session Link",
+          "System Socket Layer",
+          "Session Security Layer",
         ],
       },
       {
@@ -354,6 +380,32 @@ export const domains: Domain[] = [
           "Security Access System Engine",
           "Secure Authentication Service Environment",
           "System Access Secure Edge",
+        ],
+      },
+      {
+        acronym: "SWG",
+        full: "Secure Web Gateway",
+        plain:
+          "A security solution that filters, inspects, and enforces policy on web traffic.",
+        confusion: "SASE vs SWG",
+        quizChoices: [
+          "Secure Web Gateway",
+          "Switching Web Group",
+          "Software Web Guard",
+          "Secure Work Gateway",
+        ],
+      },
+      {
+        acronym: "CASB",
+        full: "Cloud Access Security Broker",
+        plain:
+          "A security control point placed between users and cloud services to enforce security and compliance policies.",
+        confusion: "CASB vs SWG",
+        quizChoices: [
+          "Cloud Access Security Broker",
+          "Centralized Access Security Base",
+          "Cloud Application Service Bridge",
+          "Controlled Access Security Boundary",
         ],
       },
     ],
@@ -419,16 +471,42 @@ export const domains: Domain[] = [
         ],
       },
       {
+        acronym: "UEM",
+        full: "Unified Endpoint Management",
+        plain:
+          "A management approach that centrally administers multiple endpoint types through one platform.",
+        confusion: "MDM vs UEM",
+        quizChoices: [
+          "Unified Endpoint Management",
+          "Universal Enterprise Monitoring",
+          "User Endpoint Mapping",
+          "Unified Encryption Mechanism",
+        ],
+      },
+      {
         acronym: "NAC",
         full: "Network Access Control",
         plain:
-          "A control framework that restricts network access based on policy and device/user attributes.",
+          "A control framework that restricts network access based on policy and device or user attributes.",
         confusion: "NAC vs ACL",
         quizChoices: [
           "Network Access Control",
           "Network Authentication Channel",
           "Node Access Configuration",
           "Network Audit Controller",
+        ],
+      },
+      {
+        acronym: "ACL",
+        full: "Access Control List",
+        plain:
+          "A list of rules that allows or denies access to resources, traffic, or system objects.",
+        confusion: "NAC vs ACL",
+        quizChoices: [
+          "Access Control List",
+          "Authorized Connection Layer",
+          "Access Channel Logic",
+          "Account Control Link",
         ],
       },
       {
@@ -448,13 +526,26 @@ export const domains: Domain[] = [
         acronym: "XDR",
         full: "Extended Detection and Response",
         plain:
-          "A broader detection and response model that correlates across multiple security layers.",
+          "A broader detection and response model that correlates telemetry across multiple security layers.",
         confusion: "XDR vs EDR",
         quizChoices: [
           "Extended Detection and Response",
           "External Device Recovery",
           "Extended Data Routing",
           "Endpoint Detection and Recovery",
+        ],
+      },
+      {
+        acronym: "RBAC",
+        full: "Role-based Access Control",
+        plain:
+          "An access control model that grants permissions based on a user's assigned role.",
+        confusion: "RBAC vs ACL",
+        quizChoices: [
+          "Role-based Access Control",
+          "Rule-based Access Configuration",
+          "Remote-Based Authentication Control",
+          "Resource-based Access Channel",
         ],
       },
       {
@@ -550,7 +641,7 @@ export const domains: Domain[] = [
         full: "Business Impact Analysis",
         plain:
           "A process for identifying which functions matter most and what disruption would cost.",
-        confusion: "BIA vs risk assessment",
+        confusion: "BIA vs RTO",
         quizChoices: [
           "Business Impact Analysis",
           "Business Integrity Assessment",
@@ -686,6 +777,19 @@ export const domains: Domain[] = [
           "Measure of Use",
           "Method of Unification",
           "Manual of Usage",
+        ],
+      },
+      {
+        acronym: "MOA",
+        full: "Memorandum of Agreement",
+        plain:
+          "A formal agreement between parties that defines commitments and responsibilities.",
+        confusion: "MOU vs MOA",
+        quizChoices: [
+          "Memorandum of Agreement",
+          "Method of Authorization",
+          "Managed Operations Approval",
+          "Memorandum of Access",
         ],
       },
     ],
