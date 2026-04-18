@@ -80,6 +80,7 @@ function ActionCard({
   description,
   meta,
   primary = false,
+  badge,
 }: {
   href: string;
   icon: LucideIcon;
@@ -88,13 +89,14 @@ function ActionCard({
   description: string;
   meta?: string;
   primary?: boolean;
+  badge?: string;
 }) {
   return (
     <Link
       href={href}
       className={`group rounded-[1.5rem] border p-4 transition ${
         primary
-          ? "border-cyan-400/30 bg-[linear-gradient(135deg,rgba(8,145,178,0.22),rgba(15,23,42,0.78))] shadow-[0_24px_90px_rgba(8,145,178,0.18)]"
+          ? "border-cyan-400/35 bg-[linear-gradient(135deg,rgba(8,145,178,0.24),rgba(15,23,42,0.78))] shadow-[0_24px_90px_rgba(8,145,178,0.20)]"
           : "border-white/10 bg-slate-950/50 hover:border-cyan-400/25 hover:bg-cyan-400/[0.05]"
       }`}
     >
@@ -105,9 +107,17 @@ function ActionCard({
         <ChevronRight className="h-5 w-5 text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-cyan-300" />
       </div>
 
-      <div className="mt-4 text-[11px] uppercase tracking-[0.22em] text-slate-500">
-        {eyebrow}
+      <div className="mt-4 flex items-center gap-2">
+        <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">
+          {eyebrow}
+        </div>
+        {badge ? (
+          <span className="rounded-full border border-cyan-300/25 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-cyan-200">
+            {badge}
+          </span>
+        ) : null}
       </div>
+
       <div className="mt-2 text-xl font-semibold tracking-tight text-white">{title}</div>
       <div className="mt-2 text-sm leading-6 text-slate-400">{description}</div>
 
@@ -121,11 +131,15 @@ function SummaryCard({
   title,
   value,
   sub,
+  actionHref,
+  actionLabel,
 }: {
   icon: LucideIcon;
   title: string;
   value: string;
   sub: string;
+  actionHref?: string;
+  actionLabel?: string;
 }) {
   return (
     <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
@@ -135,6 +149,18 @@ function SummaryCard({
       </div>
       <div className="mt-3 text-2xl font-semibold text-white">{value}</div>
       <div className="mt-2 text-sm leading-6 text-slate-400">{sub}</div>
+
+      {actionHref && actionLabel ? (
+        <div className="mt-4">
+          <Link
+            href={actionHref}
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/5"
+          >
+            {actionLabel}
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -253,7 +279,7 @@ export default function HomePage() {
               Study Dashboard
             </h1>
             <p className="mt-4 text-base text-slate-400 sm:text-lg">
-              Track readiness, launch study modes, and monitor domain progress.
+              Track progress and launch study modes.
             </p>
             <p className="mt-3 text-sm text-slate-500">
               New here? Start with Quizzes, or pick a domain below.
@@ -268,6 +294,7 @@ export default function HomePage() {
               title="Quizzes"
               description="Start or continue a quiz by domain or mixed mode."
               meta="Best place to begin"
+              badge="Start here"
               primary
             />
 
@@ -338,19 +365,19 @@ export default function HomePage() {
               </p>
             </div>
 
-            <div className="mt-5 space-y-4">
+            <div className="mt-5 space-y-3">
               {homepageDomains.map((domain) => (
                 <div
                   key={domain.code}
-                  className="rounded-3xl border border-white/10 bg-slate-950/60 p-4"
+                  className="rounded-3xl border border-white/10 bg-slate-950/60 p-3.5"
                 >
-                  <div className="grid gap-4 xl:grid-cols-[minmax(0,260px)_minmax(0,1fr)_150px] xl:items-center">
+                  <div className="grid gap-3 xl:grid-cols-[minmax(0,245px)_minmax(0,1fr)_140px] xl:items-center">
                     <div className="min-w-0">
-                      <h3 className="text-lg font-semibold leading-tight text-white">
+                      <h3 className="text-base font-semibold leading-tight text-white">
                         {domain.name}
                       </h3>
 
-                      <div className="mt-2 inline-flex rounded-full border border-white/10 px-3 py-1 text-sm text-slate-300">
+                      <div className="mt-2 inline-flex rounded-full border border-white/10 px-2.5 py-1 text-xs text-slate-300">
                         {domain.weight}% exam weight
                       </div>
 
@@ -370,7 +397,7 @@ export default function HomePage() {
                     <div className="flex xl:justify-end">
                       <Link
                         href={`/study/${domain.code}`}
-                        className="inline-flex min-w-[130px] items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/5"
+                        className="inline-flex min-w-[122px] items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/5"
                       >
                         {getDomainAction(domain.progress)}
                         <ChevronRight className="h-4 w-4" />
@@ -409,6 +436,8 @@ export default function HomePage() {
                     ? `${lastActiveDomain.progress}% complete`
                     : "Start a quiz or flashcard session to begin tracking."
                 }
+                actionHref={lastActiveDomain ? `/study/${lastActiveDomain.code}` : undefined}
+                actionLabel={lastActiveDomain ? "Resume last activity" : undefined}
               />
 
               <SummaryCard
@@ -434,7 +463,7 @@ export default function HomePage() {
                     href={nextPriorityDomain ? `/study/${nextPriorityDomain.code}` : "/study"}
                     className="inline-flex items-center gap-2 rounded-full bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
                   >
-                    Open next domain
+                    Start next domain
                     <ChevronRight className="h-4 w-4" />
                   </Link>
 
@@ -442,7 +471,7 @@ export default function HomePage() {
                     href="/study"
                     className="inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/5"
                   >
-                    Open quizzes
+                    View all quizzes
                     <ChevronRight className="h-4 w-4" />
                   </Link>
                 </div>
