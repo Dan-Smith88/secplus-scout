@@ -35,7 +35,7 @@ type StoredProgress = Record<
 
 function ProgressBar({ value }: { value: number }) {
   return (
-    <div className="h-2.5 w-full overflow-hidden rounded-full bg-white/10">
+    <div className="h-2 w-full overflow-hidden rounded-full bg-white/10">
       <div
         className="h-full rounded-full bg-cyan-400 transition-all duration-500"
         style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
@@ -56,17 +56,17 @@ function StatCard({
   sub: string;
 }) {
   return (
-    <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-5 shadow-[0_12px_40px_rgba(2,6,23,0.35)]">
-      <div className="mb-4 flex items-start justify-between">
-        <div className="text-xs uppercase tracking-[0.24em] text-slate-500">
+    <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4 shadow-[0_12px_40px_rgba(2,6,23,0.35)]">
+      <div className="mb-3 flex items-start justify-between">
+        <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
           {title}
         </div>
-        <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-2">
+        <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2">
           <Icon className="h-4 w-4 text-cyan-300" />
         </div>
       </div>
 
-      <div className="text-4xl font-semibold tracking-tight text-white">{value}</div>
+      <div className="text-3xl font-semibold tracking-tight text-white">{value}</div>
       <div className="mt-2 text-sm text-slate-400">{sub}</div>
     </div>
   );
@@ -92,28 +92,26 @@ function ActionCard({
   return (
     <Link
       href={href}
-      className={`group rounded-[1.75rem] border p-5 transition ${
+      className={`group rounded-[1.5rem] border p-4 transition ${
         primary
-          ? "border-cyan-400/25 bg-[linear-gradient(135deg,rgba(8,145,178,0.18),rgba(15,23,42,0.72))] shadow-[0_20px_80px_rgba(8,145,178,0.16)]"
+          ? "border-cyan-400/30 bg-[linear-gradient(135deg,rgba(8,145,178,0.22),rgba(15,23,42,0.78))] shadow-[0_24px_90px_rgba(8,145,178,0.18)]"
           : "border-white/10 bg-slate-950/50 hover:border-cyan-400/25 hover:bg-cyan-400/[0.05]"
       }`}
     >
       <div className="flex items-start justify-between gap-4">
-        <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
+        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5">
           <Icon className="h-5 w-5 text-cyan-300" />
         </div>
         <ChevronRight className="h-5 w-5 text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-cyan-300" />
       </div>
 
-      <div className="mt-5 text-xs uppercase tracking-[0.22em] text-slate-500">
+      <div className="mt-4 text-[11px] uppercase tracking-[0.22em] text-slate-500">
         {eyebrow}
       </div>
-      <div className="mt-2 text-2xl font-semibold tracking-tight text-white">
-        {title}
-      </div>
+      <div className="mt-2 text-xl font-semibold tracking-tight text-white">{title}</div>
       <div className="mt-2 text-sm leading-6 text-slate-400">{description}</div>
 
-      {meta ? <div className="mt-4 text-sm font-medium text-cyan-300">{meta}</div> : null}
+      {meta ? <div className="mt-3 text-sm font-medium text-cyan-300">{meta}</div> : null}
     </Link>
   );
 }
@@ -131,12 +129,12 @@ function SummaryCard({
 }) {
   return (
     <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
-      <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-500">
+      <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-slate-500">
         <Icon className="h-4 w-4" />
         {title}
       </div>
       <div className="mt-3 text-2xl font-semibold text-white">{value}</div>
-      <div className="mt-2 text-sm text-slate-400">{sub}</div>
+      <div className="mt-2 text-sm leading-6 text-slate-400">{sub}</div>
     </div>
   );
 }
@@ -243,8 +241,6 @@ export default function HomePage() {
     return homepageDomains[0] ?? null;
   }, [homepageDomains]);
 
-  const hasProgress = domainsStarted > 0;
-
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.10),_transparent_30%),linear-gradient(180deg,_#020617_0%,_#06101f_100%)] text-white">
       <TopNav />
@@ -260,7 +256,7 @@ export default function HomePage() {
               Track readiness, launch study modes, and monitor domain progress.
             </p>
             <p className="mt-3 text-sm text-slate-500">
-              New here? Start with Quizzes or pick a domain below.
+              New here? Start with Quizzes, or pick a domain below.
             </p>
           </div>
 
@@ -304,7 +300,7 @@ export default function HomePage() {
           </div>
         </section>
 
-        <section className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           <StatCard
             icon={Trophy}
             title="Readiness"
@@ -331,7 +327,7 @@ export default function HomePage() {
           />
         </section>
 
-        <section className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+        <section className="mt-5 grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
           <div className="rounded-[2rem] border border-white/10 bg-slate-950/45 p-5 shadow-[0_12px_40px_rgba(2,6,23,0.35)]">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight text-white">
@@ -348,17 +344,17 @@ export default function HomePage() {
                   key={domain.code}
                   className="rounded-3xl border border-white/10 bg-slate-950/60 p-4"
                 >
-                  <div className="grid gap-4 xl:grid-cols-[minmax(0,280px)_minmax(0,1fr)_160px] xl:items-center">
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,260px)_minmax(0,1fr)_150px] xl:items-center">
                     <div className="min-w-0">
-                      <h3 className="text-lg font-semibold leading-tight text-white xl:text-xl">
+                      <h3 className="text-lg font-semibold leading-tight text-white">
                         {domain.name}
                       </h3>
 
-                      <div className="mt-3 inline-flex rounded-full border border-white/10 px-3 py-1 text-sm text-slate-300">
+                      <div className="mt-2 inline-flex rounded-full border border-white/10 px-3 py-1 text-sm text-slate-300">
                         {domain.weight}% exam weight
                       </div>
 
-                      <div className="mt-3 text-sm text-slate-400">
+                      <div className="mt-2 text-sm text-slate-400">
                         {getDomainStatus(domain.progress)}
                       </div>
                     </div>
@@ -374,7 +370,7 @@ export default function HomePage() {
                     <div className="flex xl:justify-end">
                       <Link
                         href={`/study/${domain.code}`}
-                        className="inline-flex min-w-[140px] items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-5 py-3 text-base font-medium text-white transition hover:bg-white/5"
+                        className="inline-flex min-w-[130px] items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/5"
                       >
                         {getDomainAction(domain.progress)}
                         <ChevronRight className="h-4 w-4" />
@@ -422,14 +418,14 @@ export default function HomePage() {
                 sub={
                   nextPriorityDomain
                     ? nextPriorityDomain.progress === 0
-                      ? `Recommended because it is a high-weight domain with no progress yet.`
-                      : `Recommended because it is the next best area to tighten.`
+                      ? "Recommended because it is a high-weight domain with no progress yet."
+                      : "Recommended because it is the next best area to tighten."
                     : "Good starting point for focused practice."
                 }
               />
 
               <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
-                <div className="text-xs uppercase tracking-[0.22em] text-slate-500">
+                <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">
                   Quick links
                 </div>
 
@@ -450,12 +446,6 @@ export default function HomePage() {
                     <ChevronRight className="h-4 w-4" />
                   </Link>
                 </div>
-
-                {!hasProgress ? (
-                  <p className="mt-4 text-sm text-slate-400">
-                    Start anywhere. The dashboard gets smarter once you have some activity.
-                  </p>
-                ) : null}
               </div>
             </div>
           </div>
