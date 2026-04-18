@@ -2,23 +2,24 @@
 
 import Link from "next/link";
 import {
-  ArrowRight,
   Trophy,
   CheckCircle2,
-  AlertTriangle,
   Target,
-  ChevronRight,
-  PlayCircle,
+  AlertTriangle,
   Layers3,
+  Library,
   Brain,
-  BarChart3,
+  SquareStack,
+  ChevronRight,
+  CircleGauge,
+  History,
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import TopNav from "../components/TopNav";
 import { domains as securityDomains } from "../lib/securityData";
 import { loadMastery } from "../lib/masteryStorage";
 import { MasteryStore } from "../lib/masteryTypes";
-import TopNav from "../components/TopNav";
 
 const STORAGE_KEY = "secplus-domain-progress-v1";
 
@@ -101,18 +102,42 @@ function ActionCard({
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3">
           <Icon className="h-5 w-5 text-cyan-300" />
         </div>
-
-        <ArrowRight className="h-5 w-5 text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-cyan-300" />
+        <ChevronRight className="h-5 w-5 text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-cyan-300" />
       </div>
 
       <div className="mt-5 text-xs uppercase tracking-[0.22em] text-slate-500">
         {eyebrow}
       </div>
-      <div className="mt-2 text-2xl font-semibold tracking-tight text-white">{title}</div>
+      <div className="mt-2 text-2xl font-semibold tracking-tight text-white">
+        {title}
+      </div>
       <div className="mt-2 text-sm leading-6 text-slate-400">{description}</div>
 
       {meta ? <div className="mt-4 text-sm font-medium text-cyan-300">{meta}</div> : null}
     </Link>
+  );
+}
+
+function SummaryCard({
+  icon: Icon,
+  title,
+  value,
+  sub,
+}: {
+  icon: LucideIcon;
+  title: string;
+  value: string;
+  sub: string;
+}) {
+  return (
+    <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
+      <div className="flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-500">
+        <Icon className="h-4 w-4" />
+        {title}
+      </div>
+      <div className="mt-3 text-2xl font-semibold text-white">{value}</div>
+      <div className="mt-2 text-sm text-slate-400">{sub}</div>
+    </div>
   );
 }
 
@@ -125,9 +150,17 @@ function getDomainStatus(progress: number) {
 
 function getDomainAction(progress: number) {
   if (progress === 0) return "Start quiz";
-  if (progress < 70) return "Continue";
-  if (progress < 90) return "Review";
+  if (progress < 70) return "Resume quiz";
+  if (progress < 100) return "Review quiz";
   return "Maintain";
+}
+
+function getReadinessLabel(readiness: number) {
+  if (readiness < 25) return "Getting started";
+  if (readiness < 50) return "Building foundation";
+  if (readiness < 75) return "Progressing well";
+  if (readiness < 90) return "Nearly ready";
+  return "Exam-ready review";
 }
 
 export default function HomePage() {
@@ -166,6 +199,7 @@ export default function HomePage() {
     return Math.round(weightedScore / totalWeight);
   }, [homepageDomains]);
 
+  const readinessLabel = getReadinessLabel(overallReadiness);
   const domainsStarted = homepageDomains.filter((d) => d.progress > 0).length;
 
   const masteryTotals = useMemo(() => {
@@ -195,23 +229,21 @@ export default function HomePage() {
     return null;
   }, [homepageDomains]);
 
-  const nextUnstartedDomain = useMemo(() => {
-    return homepageDomains.find((d) => d.progress === 0) ?? null;
+  const nextPriorityDomain = useMemo(() => {
+    const unstarted = homepageDomains.filter((d) => d.progress === 0);
+    if (unstarted.length > 0) {
+      return [...unstarted].sort((a, b) => b.weight - a.weight)[0];
+    }
+
+    const active = homepageDomains.filter((d) => d.progress < 100);
+    if (active.length > 0) {
+      return [...active].sort((a, b) => a.progress - b.progress || b.weight - a.weight)[0];
+    }
+
+    return homepageDomains[0] ?? null;
   }, [homepageDomains]);
 
-  const weakestStartedDomain = useMemo(() => {
-    const started = homepageDomains.filter((d) => d.progress > 0);
-    if (started.length === 0) return null;
-    return [...started].sort((a, b) => a.progress - b.progress)[0];
-  }, [homepageDomains]);
-
-  const strongestDomain = useMemo(() => {
-    const started = homepageDomains.filter((d) => d.progress > 0);
-    if (started.length === 0) return null;
-    return [...started].sort((a, b) => b.progress - a.progress)[0];
-  }, [homepageDomains]);
-
-  const resumeDomain = lastActiveDomain ?? nextUnstartedDomain ?? homepageDomains[0] ?? null;
+  const hasProgress = domainsStarted > 0;
 
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.10),_transparent_30%),linear-gradient(180deg,_#020617_0%,_#06101f_100%)] text-white">
@@ -222,61 +254,52 @@ export default function HomePage() {
           <div className="max-w-3xl">
             <div className="text-sm font-medium text-cyan-300">Dashboard</div>
             <h1 className="mt-2 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-              Choose your next move
+              Study Dashboard
             </h1>
             <p className="mt-4 text-base text-slate-400 sm:text-lg">
-              Make the next click obvious.
+              Track readiness, launch study modes, and monitor domain progress.
+            </p>
+            <p className="mt-3 text-sm text-slate-500">
+              New here? Start with Quizzes or pick a domain below.
             </p>
           </div>
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <ActionCard
-              href={resumeDomain ? `/study/${resumeDomain.code}` : "/study"}
-              icon={PlayCircle}
-              eyebrow="Continue"
-              title="Resume studying"
-              description={
-                resumeDomain?.progress && resumeDomain.progress > 0
-                  ? `Continue ${resumeDomain.name} where you left off.`
-                  : "Start your first domain and build momentum."
-              }
-              meta={
-                resumeDomain?.progress && resumeDomain.progress > 0
-                  ? `${resumeDomain.progress}% complete`
-                  : "Pick a domain to begin"
-              }
+              href="/study"
+              icon={Layers3}
+              eyebrow="Quizzes"
+              title="Quizzes"
+              description="Start or continue a quiz by domain or mixed mode."
+              meta="Best place to begin"
               primary
             />
 
             <ActionCard
-              href="/study"
-              icon={Layers3}
-              eyebrow="Start"
-              title="Start a quiz"
-              description="Pick a domain or use the practice area for a broader run."
-              meta="Choose your scope"
-            />
-
-            <ActionCard
-              href="/study"
-              icon={AlertTriangle}
-              eyebrow="Review"
-              title="Review weak spots"
-              description="Revisit missed terms and anything that still feels slippery."
-              meta={
-                recentMissCount > 0
-                  ? `${recentMissCount} missed term${recentMissCount === 1 ? "" : "s"} waiting`
-                  : "Use review mode to tighten weak areas"
-              }
+              href="/flashcards"
+              icon={Library}
+              eyebrow="Flashcards"
+              title="Flashcards"
+              description="Study cards by topic at your own pace."
+              meta="General card study"
             />
 
             <ActionCard
               href="/daily-flashcards"
               icon={Brain}
-              eyebrow="Warm-up"
-              title="Daily flashcards"
-              description="Quick reps before you tackle a quiz or a review pass."
-              meta="Fastest study option"
+              eyebrow="Daily review"
+              title="Daily Review"
+              description="Quick rotating review session for fast reps."
+              meta="Shortest study session"
+            />
+
+            <ActionCard
+              href="/acronyms"
+              icon={SquareStack}
+              eyebrow="Reference"
+              title="All Acronyms"
+              description="Browse the full glossary and term library."
+              meta="Full acronym list"
             />
           </div>
         </section>
@@ -286,13 +309,13 @@ export default function HomePage() {
             icon={Trophy}
             title="Readiness"
             value={`${overallReadiness}%`}
-            sub="weighted by exam importance"
+            sub="Based on weighted progress across exam domains"
           />
           <StatCard
             icon={CheckCircle2}
             title="Mastery"
             value={`${masteryTotals.masteryScore}%`}
-            sub="based on know vs seen"
+            sub="Based on know vs seen"
           />
           <StatCard
             icon={Target}
@@ -304,21 +327,19 @@ export default function HomePage() {
             icon={AlertTriangle}
             title="Missed terms"
             value={`${recentMissCount}`}
-            sub="waiting for review"
+            sub="Waiting for review"
           />
         </section>
 
         <section className="mt-6 grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-[2rem] border border-white/10 bg-slate-950/45 p-5 shadow-[0_12px_40px_rgba(2,6,23,0.35)]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <h2 className="text-3xl font-semibold tracking-tight text-white">
-                  Progress snapshot
-                </h2>
-                <p className="mt-2 text-slate-400">
-                  All five domains, no weird hiding tricks.
-                </p>
-              </div>
+            <div>
+              <h2 className="text-3xl font-semibold tracking-tight text-white">
+                Progress by domain
+              </h2>
+              <p className="mt-2 text-slate-400">
+                All five domains, with direct routing into each quiz.
+              </p>
             </div>
 
             <div className="mt-5 space-y-4">
@@ -327,9 +348,9 @@ export default function HomePage() {
                   key={domain.code}
                   className="rounded-3xl border border-white/10 bg-slate-950/60 p-4"
                 >
-                  <div className="grid gap-4 xl:grid-cols-[minmax(0,260px)_minmax(0,1fr)_140px] xl:items-center">
+                  <div className="grid gap-4 xl:grid-cols-[minmax(0,280px)_minmax(0,1fr)_160px] xl:items-center">
                     <div className="min-w-0">
-                      <h3 className="text-xl font-semibold leading-tight text-white">
+                      <h3 className="text-lg font-semibold leading-tight text-white xl:text-xl">
                         {domain.name}
                       </h3>
 
@@ -353,7 +374,7 @@ export default function HomePage() {
                     <div className="flex xl:justify-end">
                       <Link
                         href={`/study/${domain.code}`}
-                        className="inline-flex min-w-[120px] items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-5 py-3 text-base font-medium text-white transition hover:bg-white/5"
+                        className="inline-flex min-w-[140px] items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-5 py-3 text-base font-medium text-white transition hover:bg-white/5"
                       >
                         {getDomainAction(domain.progress)}
                         <ChevronRight className="h-4 w-4" />
@@ -368,69 +389,74 @@ export default function HomePage() {
           <div className="rounded-[2rem] border border-white/10 bg-slate-950/45 p-5 shadow-[0_12px_40px_rgba(2,6,23,0.35)]">
             <div>
               <h2 className="text-3xl font-semibold tracking-tight text-white">
-                What to focus on
+                Study Summary
               </h2>
               <p className="mt-2 text-slate-400">
-                One glance, three signals, less overthinking.
+                A quick view of where you are and where to go next.
               </p>
             </div>
 
             <div className="mt-5 space-y-4">
-              <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
-                <div className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                  Resume now
-                </div>
-                <div className="mt-3 text-2xl font-semibold text-white">
-                  {resumeDomain?.name ?? "Choose a domain"}
-                </div>
-                <div className="mt-2 text-sm text-slate-400">
-                  {resumeDomain?.progress && resumeDomain.progress > 0
-                    ? `${resumeDomain.progress}% complete`
-                    : "No active progress yet"}
-                </div>
-              </div>
+              <SummaryCard
+                icon={CircleGauge}
+                title="Readiness"
+                value={`${overallReadiness}% — ${readinessLabel}`}
+                sub="Overall weighted readiness across all domains."
+              />
+
+              <SummaryCard
+                icon={History}
+                title="Last activity"
+                value={lastActiveDomain?.name ?? "None yet"}
+                sub={
+                  lastActiveDomain
+                    ? `${lastActiveDomain.progress}% complete`
+                    : "Start a quiz or flashcard session to begin tracking."
+                }
+              />
+
+              <SummaryCard
+                icon={Target}
+                title="Recommended next domain"
+                value={nextPriorityDomain?.name ?? "General Security Concepts"}
+                sub={
+                  nextPriorityDomain
+                    ? nextPriorityDomain.progress === 0
+                      ? `Recommended because it is a high-weight domain with no progress yet.`
+                      : `Recommended because it is the next best area to tighten.`
+                    : "Good starting point for focused practice."
+                }
+              />
 
               <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
                 <div className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                  Weakest active area
+                  Quick links
                 </div>
-                <div className="mt-3 text-2xl font-semibold text-white">
-                  {weakestStartedDomain?.name ?? "None yet"}
+
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <Link
+                    href={nextPriorityDomain ? `/study/${nextPriorityDomain.code}` : "/study"}
+                    className="inline-flex items-center gap-2 rounded-full bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+                  >
+                    Open next domain
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
+
+                  <Link
+                    href="/study"
+                    className="inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/5"
+                  >
+                    Open quizzes
+                    <ChevronRight className="h-4 w-4" />
+                  </Link>
                 </div>
-                <div className="mt-2 text-sm text-slate-400">
-                  {weakestStartedDomain
-                    ? `${weakestStartedDomain.progress}% complete`
-                    : "Start a quiz to generate useful signals"}
-                </div>
+
+                {!hasProgress ? (
+                  <p className="mt-4 text-sm text-slate-400">
+                    Start anywhere. The dashboard gets smarter once you have some activity.
+                  </p>
+                ) : null}
               </div>
-
-              <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
-                <div className="text-xs uppercase tracking-[0.22em] text-slate-500">
-                  Strongest area
-                </div>
-                <div className="mt-3 text-2xl font-semibold text-white">
-                  {strongestDomain?.name ?? "None yet"}
-                </div>
-                <div className="mt-2 text-sm text-slate-400">
-                  {strongestDomain
-                    ? `${strongestDomain.progress}% complete`
-                    : "Your strongest area shows up after you start"}
-                </div>
-              </div>
-
-              <Link
-                href="/"
-                className="flex items-center justify-between rounded-3xl border border-white/10 bg-slate-950/60 px-5 py-4 transition hover:border-cyan-400/25 hover:bg-cyan-400/[0.05]"
-              >
-                <div>
-                  <div className="text-lg font-semibold text-white">Open full progress view</div>
-                  <div className="mt-1 text-sm text-slate-400">
-                    Check readiness, mastery, and all domain progress together.
-                  </div>
-                </div>
-
-                <BarChart3 className="h-5 w-5 text-cyan-300" />
-              </Link>
             </div>
           </div>
         </section>
