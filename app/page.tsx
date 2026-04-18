@@ -67,7 +67,7 @@ function StatCard({
       </div>
 
       <div className="text-3xl font-semibold tracking-tight text-white">{value}</div>
-      <div className="mt-2 text-sm text-slate-400">{sub}</div>
+      <div className="mt-2 text-sm text-slate-300">{sub}</div>
     </div>
   );
 }
@@ -112,14 +112,14 @@ function ActionCard({
           {eyebrow}
         </div>
         {badge ? (
-          <span className="rounded-full border border-cyan-300/25 bg-cyan-400/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-cyan-200">
+          <span className="rounded-full border border-amber-300/25 bg-amber-400/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-amber-200">
             {badge}
           </span>
         ) : null}
       </div>
 
       <div className="mt-2 text-xl font-semibold tracking-tight text-white">{title}</div>
-      <div className="mt-2 text-sm leading-6 text-slate-400">{description}</div>
+      <div className="mt-2 text-sm leading-6 text-slate-300">{description}</div>
 
       {meta ? <div className="mt-3 text-sm font-medium text-cyan-300">{meta}</div> : null}
     </Link>
@@ -133,6 +133,7 @@ function SummaryCard({
   sub,
   actionHref,
   actionLabel,
+  accent = "default",
 }: {
   icon: LucideIcon;
   title: string;
@@ -140,22 +141,28 @@ function SummaryCard({
   sub: string;
   actionHref?: string;
   actionLabel?: string;
+  accent?: "default" | "recommended";
 }) {
+  const valueClass =
+    accent === "recommended" ? "text-amber-100" : "text-white";
+
+  const actionClass =
+    accent === "recommended"
+      ? "inline-flex items-center gap-2 rounded-full border border-amber-300/20 px-4 py-2 text-sm font-medium text-amber-100 transition hover:bg-amber-400/[0.08]"
+      : "inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/5";
+
   return (
     <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
       <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-slate-500">
         <Icon className="h-4 w-4" />
         {title}
       </div>
-      <div className="mt-3 text-2xl font-semibold text-white">{value}</div>
-      <div className="mt-2 text-sm leading-6 text-slate-400">{sub}</div>
+      <div className={`mt-3 text-2xl font-semibold ${valueClass}`}>{value}</div>
+      <div className="mt-2 text-sm leading-6 text-slate-300">{sub}</div>
 
       {actionHref && actionLabel ? (
         <div className="mt-4">
-          <Link
-            href={actionHref}
-            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-medium text-white transition hover:bg-white/5"
-          >
+          <Link href={actionHref} className={actionClass}>
             {actionLabel}
             <ChevronRight className="h-4 w-4" />
           </Link>
@@ -170,6 +177,19 @@ function getDomainStatus(progress: number) {
   if (progress < 70) return "In progress";
   if (progress < 90) return "Sharpening";
   return "Strong";
+}
+
+function getDomainStatusClasses(progress: number) {
+  if (progress === 0) {
+    return "border-white/10 bg-white/[0.03] text-slate-300";
+  }
+  if (progress < 70) {
+    return "border-cyan-300/20 bg-cyan-400/[0.08] text-cyan-200";
+  }
+  if (progress < 90) {
+    return "border-amber-300/20 bg-amber-400/[0.10] text-amber-200";
+  }
+  return "border-emerald-300/20 bg-emerald-400/[0.10] text-emerald-200";
 }
 
 function getDomainAction(progress: number) {
@@ -278,7 +298,7 @@ export default function HomePage() {
             <h1 className="mt-2 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
               Study Dashboard
             </h1>
-            <p className="mt-4 text-base text-slate-400 sm:text-lg">
+            <p className="mt-4 text-base text-slate-300 sm:text-lg">
               Track progress and launch study modes.
             </p>
             <p className="mt-3 text-sm text-slate-500">
@@ -288,7 +308,7 @@ export default function HomePage() {
 
           <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             <ActionCard
-              href="/study"
+              href="/quiz"
               icon={Layers3}
               eyebrow="Quizzes"
               title="Quizzes"
@@ -299,25 +319,25 @@ export default function HomePage() {
             />
 
             <ActionCard
-              href="/flashcards"
+              href="/mastery"
               icon={Library}
               eyebrow="Flashcards"
               title="Flashcards"
-              description="Study cards by topic at your own pace."
-              meta="General card study"
+              description="Open the acronym mastery hub for drills and review."
+              meta="Mastery training hub"
             />
 
             <ActionCard
-              href="/daily-flashcards"
+              href="/mastery/daily"
               icon={Brain}
               eyebrow="Daily review"
               title="Daily Review"
-              description="Quick rotating review session for fast reps."
-              meta="Shortest study session"
+              description="Run today’s rotating drill for quick reps."
+              meta="Today’s rotating set"
             />
 
             <ActionCard
-              href="/acronyms"
+              href="/mastery/all"
               icon={SquareStack}
               eyebrow="Reference"
               title="All Acronyms"
@@ -360,7 +380,7 @@ export default function HomePage() {
               <h2 className="text-3xl font-semibold tracking-tight text-white">
                 Progress by domain
               </h2>
-              <p className="mt-2 text-slate-400">
+              <p className="mt-2 text-slate-300">
                 All five domains, with direct routing into each quiz.
               </p>
             </div>
@@ -377,17 +397,22 @@ export default function HomePage() {
                         {domain.name}
                       </h3>
 
-                      <div className="mt-2 inline-flex rounded-full border border-white/10 px-2.5 py-1 text-xs text-slate-300">
-                        {domain.weight}% exam weight
-                      </div>
-
-                      <div className="mt-2 text-sm text-slate-400">
-                        {getDomainStatus(domain.progress)}
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className="inline-flex rounded-full border border-white/10 px-2.5 py-1 text-xs text-slate-300">
+                          {domain.weight}% exam weight
+                        </span>
+                        <span
+                          className={`inline-flex rounded-full border px-2.5 py-1 text-xs ${getDomainStatusClasses(
+                            domain.progress
+                          )}`}
+                        >
+                          {getDomainStatus(domain.progress)}
+                        </span>
                       </div>
                     </div>
 
                     <div className="min-w-0">
-                      <div className="mb-2 flex items-center justify-between text-sm text-slate-400">
+                      <div className="mb-2 flex items-center justify-between text-sm text-slate-300">
                         <span>Progress</span>
                         <span>{domain.progress}%</span>
                       </div>
@@ -396,7 +421,7 @@ export default function HomePage() {
 
                     <div className="flex xl:justify-end">
                       <Link
-                        href={`/study/${domain.code}`}
+                        href={`/quiz/domain?code=${encodeURIComponent(domain.code)}`}
                         className="inline-flex min-w-[122px] items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/5"
                       >
                         {getDomainAction(domain.progress)}
@@ -414,7 +439,7 @@ export default function HomePage() {
               <h2 className="text-3xl font-semibold tracking-tight text-white">
                 Study Summary
               </h2>
-              <p className="mt-2 text-slate-400">
+              <p className="mt-2 text-slate-300">
                 A quick view of where you are and where to go next.
               </p>
             </div>
@@ -434,9 +459,13 @@ export default function HomePage() {
                 sub={
                   lastActiveDomain
                     ? `${lastActiveDomain.progress}% complete`
-                    : "Start a quiz or flashcard session to begin tracking."
+                    : "Start a quiz or mastery session to begin tracking."
                 }
-                actionHref={lastActiveDomain ? `/study/${lastActiveDomain.code}` : undefined}
+                actionHref={
+                  lastActiveDomain
+                    ? `/quiz/domain?code=${encodeURIComponent(lastActiveDomain.code)}`
+                    : undefined
+                }
                 actionLabel={lastActiveDomain ? "Resume last activity" : undefined}
               />
 
@@ -451,6 +480,7 @@ export default function HomePage() {
                       : "Recommended because it is the next best area to tighten."
                     : "Good starting point for focused practice."
                 }
+                accent="recommended"
               />
 
               <div className="rounded-3xl border border-white/10 bg-slate-950/60 p-4">
@@ -460,7 +490,11 @@ export default function HomePage() {
 
                 <div className="mt-4 flex flex-wrap gap-3">
                   <Link
-                    href={nextPriorityDomain ? `/study/${nextPriorityDomain.code}` : "/study"}
+                    href={
+                      nextPriorityDomain
+                        ? `/quiz/domain?code=${encodeURIComponent(nextPriorityDomain.code)}`
+                        : "/quiz"
+                    }
                     className="inline-flex items-center gap-2 rounded-full bg-cyan-400 px-5 py-3 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
                   >
                     Start next domain
@@ -468,13 +502,17 @@ export default function HomePage() {
                   </Link>
 
                   <Link
-                    href="/study"
+                    href="/quiz"
                     className="inline-flex items-center gap-2 rounded-full border border-white/10 px-5 py-3 text-sm font-medium text-white transition hover:bg-white/5"
                   >
                     View all quizzes
                     <ChevronRight className="h-4 w-4" />
                   </Link>
                 </div>
+
+                <p className="mt-4 text-sm text-slate-400">
+                  Start anywhere. The dashboard gets smarter once you have some activity.
+                </p>
               </div>
             </div>
           </div>
