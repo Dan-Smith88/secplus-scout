@@ -17,6 +17,7 @@ import {
   saveMastery,
   upsertMasteryResult,
 } from "../../../lib/masteryStorage";
+import { shuffleArray } from "../../../lib/quizUtils";
 
 const PROGRESS_STORAGE_KEY = "secplus-domain-progress-v1";
 
@@ -46,15 +47,6 @@ type FlatQuestion = {
 type SessionQuestion = FlatQuestion & {
   shuffledChoices: string[];
 };
-
-function shuffleArray<T>(items: T[]) {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
 
 function SetupChip({
   active,

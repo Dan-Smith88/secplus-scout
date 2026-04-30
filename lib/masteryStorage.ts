@@ -7,8 +7,18 @@ export function loadMastery(): MasteryStore {
 
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : {};
+    if (!raw) return {};
+
+    const parsed = JSON.parse(raw);
+
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+      localStorage.removeItem(STORAGE_KEY);
+      return {};
+    }
+
+    return parsed as MasteryStore;
   } catch {
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
     return {};
   }
 }

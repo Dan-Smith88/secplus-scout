@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { loadMastery, saveMastery, upsertMasteryResult } from "../../../lib/masteryStorage";
 
 type AcronymCardProps = {
   domainCode: string;
@@ -17,6 +18,22 @@ export default function AcronymCard({
   item,
 }: AcronymCardProps) {
   const [status, setStatus] = useState<"easy" | "hard" | null>(null);
+
+  function markStatus(next: "easy" | "hard") {
+    setStatus(next);
+    try {
+      const store = loadMastery();
+      const updated = upsertMasteryResult(
+        store,
+        domainCode,
+        item.acronym,
+        next === "easy" ? "know" : "missed"
+      );
+      saveMastery(updated);
+    } catch {
+      // ignore storage failure
+    }
+  }
 
   return (
     <div className="rounded-3xl border border-white/10 bg-[#0b1730] p-5">
@@ -51,7 +68,7 @@ export default function AcronymCard({
 
       <div className="mt-5 flex flex-wrap gap-3">
         <button
-          onClick={() => setStatus("easy")}
+          onClick={() => markStatus("easy")}
           className={`rounded-2xl px-4 py-2 font-medium ${
             status === "easy"
               ? "bg-emerald-400 text-slate-950"
@@ -62,7 +79,7 @@ export default function AcronymCard({
         </button>
 
         <button
-          onClick={() => setStatus("hard")}
+          onClick={() => markStatus("hard")}
           className={`rounded-2xl border px-4 py-2 ${
             status === "hard"
               ? "border-rose-300 bg-rose-400/10 text-rose-200"

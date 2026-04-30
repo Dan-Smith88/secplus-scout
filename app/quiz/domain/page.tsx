@@ -4,6 +4,8 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { domains } from "../../../lib/securityData";
+import { loadMastery, saveMastery, upsertMasteryResult } from "../../../lib/masteryStorage";
+import { shuffleArray, getRandomSubset } from "../../../lib/quizUtils";
 import TopNav from "../../../components/TopNav";
 
 const STORAGE_KEY = "secplus-domain-progress-v1";
@@ -20,20 +22,6 @@ type QuizItem = {
   domainName: string;
   domainWeight: number;
 };
-
-function shuffleArray<T>(items: readonly T[]): T[] {
-  const copy = [...items];
-  for (let i = copy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-  return copy;
-}
-
-function getRandomSubset<T>(items: readonly T[], size: number): T[] {
-  if (items.length <= size) return shuffleArray(items);
-  return shuffleArray(items).slice(0, size);
-}
 
 export default function DomainQuizPage() {
   const searchParams = useSearchParams();
@@ -208,20 +196,34 @@ export default function DomainQuizPage() {
   function submitQuiz() {
     setSubmitted(true);
 
-    if (isMixedQuiz || !singleDomain) return;
+    // Save domain-level progress for single-domain quizzes
+    if (!isMixedQuiz && singleDomain) {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        const existing = raw ? JSON.parse(raw) : {};
 
+        existing[singleDomain.code] = {
+          percent: percentage,
+          correct: correctCount,
+          total: totalQuestions,
+          completedAt: new Date().toISOString(),
+        };
+
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+      } catch {
+        // ignore storage failure
+      }
+    }
+
+    // Save per-acronym mastery results for all quiz types
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      const existing = raw ? JSON.parse(raw) : {};
-
-      existing[singleDomain.code] = {
-        percent: percentage,
-        correct: correctCount,
-        total: totalQuestions,
-        completedAt: new Date().toISOString(),
-      };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(existing));
+      let store = loadMastery();
+      for (const item of quizItems) {
+        const key = itemKey(item);
+        const result = answers[key] === item.full ? "know" : "missed";
+        store = upsertMasteryResult(store, item.domainCode, item.acronym, result);
+      }
+      saveMastery(store);
     } catch {
       // ignore storage failure
     }

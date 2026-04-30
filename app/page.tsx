@@ -18,7 +18,7 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import TopNav from "../components/TopNav";
 import { domains as securityDomains } from "../lib/securityData";
-import { loadMastery } from "../lib/masteryStorage";
+import { loadMastery, clearMastery } from "../lib/masteryStorage";
 import { MasteryStore } from "../lib/masteryTypes";
 
 const STORAGE_KEY = "secplus-domain-progress-v1";
@@ -210,13 +210,37 @@ function getReadinessLabel(readiness: number) {
 export default function HomePage() {
   const [progressStore, setProgressStore] = useState<StoredProgress>({});
   const [masteryStore, setMasteryStore] = useState<MasteryStore>({});
+  const [resetConfirm, setResetConfirm] = useState<string | null>(null);
+
+  function resetDomain(code: string) {
+    const updated = { ...progressStore };
+    delete updated[code];
+    setProgressStore(updated);
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(updated)); } catch { /* ignore */ }
+    setResetConfirm(null);
+  }
+
+  function resetAll() {
+    setProgressStore({});
+    setMasteryStore({});
+    try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
+    clearMastery();
+    setResetConfirm(null);
+  }
 
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      const stored: StoredProgress = raw ? JSON.parse(raw) : {};
-      setProgressStore(stored);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)) {
+          setProgressStore(parsed as StoredProgress);
+        } else {
+          localStorage.removeItem(STORAGE_KEY);
+        }
+      }
     } catch {
+      try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
       setProgressStore({});
     }
 
@@ -245,6 +269,7 @@ export default function HomePage() {
 
   const readinessLabel = getReadinessLabel(overallReadiness);
   const domainsStarted = homepageDomains.filter((d) => d.progress > 0).length;
+  const hasEnoughReadinessData = domainsStarted >= 1;
 
   const masteryTotals = useMemo(() => {
     const records = Object.values(masteryStore);
@@ -257,6 +282,28 @@ export default function HomePage() {
   }, [masteryStore]);
 
   const recentMissCount = masteryTotals.missed;
+
+  const weakSpots = useMemo(() => {
+    const acronymMap = new Map(
+      securityDomains.flatMap((domain) =>
+        domain.acronyms.map((item) => [
+          `${domain.code}:${item.acronym}`,
+          { full: item.full, domainName: domain.name },
+        ])
+      )
+    );
+
+    return Object.values(masteryStore)
+      .filter((r) => r.seen >= 3)
+      .sort((a, b) => a.know / a.seen - b.know / b.seen)
+      .slice(0, 5)
+      .map((r) => ({
+        ...r,
+        masteryPct: Math.round((r.know / r.seen) * 100),
+        full: acronymMap.get(`${r.domainCode}:${r.acronym}`)?.full ?? "",
+        domainName: acronymMap.get(`${r.domainCode}:${r.acronym}`)?.domainName ?? r.domainCode,
+      }));
+  }, [masteryStore]);
 
   const lastActiveDomain = useMemo(() => {
     const withDates = [...homepageDomains]
@@ -351,8 +398,8 @@ export default function HomePage() {
           <StatCard
             icon={Trophy}
             title="Readiness"
-            value={`${overallReadiness}%`}
-            sub="Based on weighted progress across exam domains"
+            value={hasEnoughReadinessData ? `${overallReadiness}%` : "—"}
+            sub={hasEnoughReadinessData ? "Based on weighted progress across exam domains" : "Complete at least one domain quiz to see your readiness"}
           />
           <StatCard
             icon={CheckCircle2}
@@ -373,6 +420,50 @@ export default function HomePage() {
             sub="Waiting for review"
           />
         </section>
+
+        {weakSpots.length > 0 && (
+          <section className="mt-5 rounded-[2rem] border border-rose-400/15 bg-slate-950/45 p-5 shadow-[0_12px_40px_rgba(2,6,23,0.35)]">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 text-sm font-medium text-rose-300">
+                  <AlertTriangle className="h-4 w-4" />
+                  Weak spots
+                </div>
+                <h2 className="mt-1 text-xl font-semibold tracking-tight text-white">
+                  Your 5 lowest-mastery acronyms
+                </h2>
+                <p className="mt-1 text-sm text-slate-400">
+                  Seen at least 3 times but still slipping. Target these first.
+                </p>
+              </div>
+              <Link
+                href="/mastery/daily"
+                className="inline-flex items-center gap-2 rounded-full border border-rose-400/20 bg-rose-400/[0.06] px-4 py-2 text-sm font-medium text-rose-200 transition hover:bg-rose-400/10"
+              >
+                Practice now
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </div>
+
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+              {weakSpots.map((spot) => (
+                <div
+                  key={`${spot.domainCode}:${spot.acronym}`}
+                  className="rounded-2xl border border-rose-400/15 bg-rose-400/[0.04] p-4"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="text-2xl font-semibold text-white">{spot.acronym}</div>
+                    <div className="rounded-full border border-rose-400/20 bg-rose-400/10 px-2 py-0.5 text-xs text-rose-200">
+                      {spot.masteryPct}%
+                    </div>
+                  </div>
+                  <div className="mt-1 text-sm text-cyan-200 leading-snug">{spot.full}</div>
+                  <div className="mt-2 text-xs text-slate-500">{spot.domainName}</div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         <section className="mt-5 grid gap-6 xl:grid-cols-[1.12fr_0.88fr]">
           <div className="rounded-[2rem] border border-white/10 bg-slate-950/45 p-5 shadow-[0_12px_40px_rgba(2,6,23,0.35)]">
@@ -419,7 +510,7 @@ export default function HomePage() {
                       <ProgressBar value={domain.progress} />
                     </div>
 
-                    <div className="flex xl:justify-end">
+                    <div className="flex flex-wrap items-center gap-2 xl:justify-end">
                       <Link
                         href={`/quiz/domain?code=${encodeURIComponent(domain.code)}`}
                         className="inline-flex min-w-[122px] items-center justify-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/5"
@@ -427,6 +518,32 @@ export default function HomePage() {
                         {getDomainAction(domain.progress)}
                         <ChevronRight className="h-4 w-4" />
                       </Link>
+
+                      {domain.progress > 0 && resetConfirm !== domain.code && (
+                        <button
+                          onClick={() => setResetConfirm(domain.code)}
+                          className="rounded-full border border-white/10 px-3 py-2.5 text-xs text-slate-400 transition hover:border-rose-400/30 hover:text-rose-300"
+                        >
+                          Reset
+                        </button>
+                      )}
+
+                      {resetConfirm === domain.code && (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => resetDomain(domain.code)}
+                            className="rounded-full border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-xs text-rose-300 transition hover:bg-rose-400/20"
+                          >
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => setResetConfirm(null)}
+                            className="rounded-full border border-white/10 px-3 py-2 text-xs text-slate-400 transition hover:bg-white/5"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -448,8 +565,8 @@ export default function HomePage() {
               <SummaryCard
                 icon={CircleGauge}
                 title="Readiness"
-                value={`${overallReadiness}% — ${readinessLabel}`}
-                sub="Overall weighted readiness across all domains."
+                value={hasEnoughReadinessData ? `${overallReadiness}% — ${readinessLabel}` : "Not enough data yet"}
+                sub={hasEnoughReadinessData ? "Overall weighted readiness across all domains." : "Complete at least one domain quiz to unlock your readiness score."}
               />
 
               <SummaryCard
@@ -515,6 +632,40 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
+          </div>
+        </section>
+        <section className="mt-5 rounded-[2rem] border border-white/[0.06] bg-slate-950/30 p-5">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-base font-semibold text-slate-400">Reset progress</h2>
+              <p className="mt-1 text-sm text-slate-500">
+                Clear all stored quiz results and mastery data. This cannot be undone.
+              </p>
+            </div>
+
+            {resetConfirm === "all" ? (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={resetAll}
+                  className="rounded-full border border-rose-400/30 bg-rose-400/10 px-4 py-2 text-sm text-rose-300 transition hover:bg-rose-400/20"
+                >
+                  Yes, reset everything
+                </button>
+                <button
+                  onClick={() => setResetConfirm(null)}
+                  className="rounded-full border border-white/10 px-4 py-2 text-sm text-slate-400 transition hover:bg-white/5"
+                >
+                  Cancel
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setResetConfirm("all")}
+                className="rounded-full border border-white/[0.08] px-4 py-2 text-sm text-slate-400 transition hover:border-rose-400/30 hover:text-rose-300"
+              >
+                Reset all progress
+              </button>
+            )}
           </div>
         </section>
       </main>
