@@ -10,6 +10,7 @@ import {
   Brain,
   Library,
   SquareStack,
+  CalendarDays,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
@@ -102,6 +103,18 @@ export default function TopNav() {
           >
             <Search className="h-4 w-4" />
             Search
+          </Link>
+
+          <Link
+            href="/calendar"
+            className={`inline-flex items-center gap-2 rounded-full border px-5 py-2.5 text-sm font-medium transition ${
+              pathname.startsWith("/calendar")
+                ? "border-cyan-300/25 bg-cyan-400/10 text-white shadow-[0_10px_30px_rgba(8,145,178,0.16)]"
+                : "border-white/10 text-slate-300 hover:bg-white/5"
+            }`}
+          >
+            <CalendarDays className="h-4 w-4" />
+            Calendar
           </Link>
 
           <div className="relative" ref={menuRef}>

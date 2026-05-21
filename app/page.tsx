@@ -13,6 +13,7 @@ import {
   ChevronRight,
   CircleGauge,
   History,
+  CalendarDays,
   type LucideIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -20,6 +21,7 @@ import TopNav from "../components/TopNav";
 import { domains as securityDomains } from "../lib/securityData";
 import { loadMastery, clearMastery } from "../lib/masteryStorage";
 import { MasteryStore } from "../lib/masteryTypes";
+import { loadCalendar, CalendarStore } from "../lib/calendarStorage";
 
 const STORAGE_KEY = "secplus-domain-progress-v1";
 
@@ -172,6 +174,148 @@ function SummaryCard({
   );
 }
 
+function toLocalDateStr(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+
+const DOW_SHORT = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function CalendarWidget({
+  store,
+  activityDates,
+}: {
+  store: CalendarStore;
+  activityDates: Set<string>;
+}) {
+  const now = new Date();
+  const today = toLocalDateStr(now);
+
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  const weekDays = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(startOfWeek);
+    d.setDate(startOfWeek.getDate() + i);
+    return d;
+  });
+
+  const examDaysLeft = (() => {
+    if (!store.examDate) return null;
+    const todayMs = new Date(today + "T00:00:00").getTime();
+    const examMs = new Date(store.examDate + "T00:00:00").getTime();
+    return Math.round((examMs - todayMs) / 86400000);
+  })();
+
+  return (
+    <div className="rounded-[2rem] border border-white/10 bg-slate-950/45 p-5 shadow-[0_12px_40px_rgba(2,6,23,0.35)]">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="rounded-xl border border-white/10 bg-white/[0.03] p-2">
+            <CalendarDays className="h-4 w-4 text-cyan-300" />
+          </div>
+          <div>
+            <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">
+              Study Planner
+            </div>
+            <div className="text-base font-semibold text-white">This week</div>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3">
+          {store.examDate && examDaysLeft !== null && (
+            <div className="flex items-center gap-2 rounded-2xl border border-rose-400/20 bg-rose-400/[0.06] px-3 py-2">
+              <span className="text-xl font-semibold text-rose-200">{examDaysLeft}</span>
+              <span className="text-sm text-rose-300/70">days to exam</span>
+            </div>
+          )}
+          <Link
+            href="/calendar"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
+          >
+            View calendar
+            <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+      </div>
+
+      <div className="mt-4 grid grid-cols-7 gap-2">
+        {weekDays.map((d, i) => {
+          const dateStr = toLocalDateStr(d);
+          const isToday = dateStr === today;
+          const isPast = dateStr < today;
+          const isPlanned = store.plannedDays.includes(dateStr);
+          const isActivity = activityDates.has(dateStr);
+          const isExam = store.examDate === dateStr;
+          const isMissed = isPast && isPlanned && !isActivity;
+
+          let cellClass = "flex flex-col items-center rounded-2xl border p-2.5 ";
+          if (isExam) cellClass += "border-rose-400/35 bg-rose-400/10";
+          else if (isActivity) cellClass += "border-emerald-400/25 bg-emerald-400/[0.08]";
+          else if (isMissed) cellClass += "border-amber-400/20 bg-amber-400/[0.05]";
+          else if (isPlanned) cellClass += "border-cyan-400/30 bg-cyan-400/10";
+          else if (isToday) cellClass += "border-cyan-300/20 bg-white/[0.03]";
+          else cellClass += "border-white/[0.05]";
+
+          const numClass = isExam
+            ? "text-rose-200"
+            : isActivity
+            ? "text-emerald-200"
+            : isMissed
+            ? "text-amber-200"
+            : isPlanned
+            ? "text-cyan-100"
+            : isToday
+            ? "text-white"
+            : isPast
+            ? "text-slate-600"
+            : "text-slate-400";
+
+          return (
+            <div key={i} className={cellClass}>
+              <div
+                className={`text-[11px] uppercase tracking-[0.14em] ${
+                  isToday ? "text-cyan-300" : "text-slate-500"
+                }`}
+              >
+                {DOW_SHORT[i]}
+              </div>
+              <div className={`mt-1.5 text-lg font-semibold ${numClass}`}>
+                {d.getDate()}
+              </div>
+              {isToday && <div className="mt-1 h-1 w-1 rounded-full bg-cyan-400" />}
+              {isExam && (
+                <div className="mt-1 text-[9px] text-rose-300">Exam</div>
+              )}
+              {isActivity && !isExam && (
+                <div className="mt-1 text-[9px] text-emerald-300">Done</div>
+              )}
+              {isMissed && (
+                <div className="mt-1 text-[9px] text-amber-300">Missed</div>
+              )}
+              {isPlanned && !isMissed && !isActivity && !isExam && (
+                <div className="mt-1 text-[9px] text-cyan-300">Plan</div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {!store.examDate && (
+        <div className="mt-4 text-center">
+          <Link
+            href="/calendar"
+            className="text-sm text-slate-500 transition hover:text-cyan-300"
+          >
+            Set an exam date on your calendar →
+          </Link>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function getDomainStatus(progress: number) {
   if (progress === 0) return "Not started";
   if (progress < 70) return "In progress";
@@ -210,6 +354,7 @@ function getReadinessLabel(readiness: number) {
 export default function HomePage() {
   const [progressStore, setProgressStore] = useState<StoredProgress>({});
   const [masteryStore, setMasteryStore] = useState<MasteryStore>({});
+  const [calendarStore, setCalendarStore] = useState<CalendarStore>({ plannedDays: [], examDate: null, dayEntries: {} });
   const [resetConfirm, setResetConfirm] = useState<string | null>(null);
 
   function resetDomain(code: string) {
@@ -245,6 +390,7 @@ export default function HomePage() {
     }
 
     setMasteryStore(loadMastery());
+    setCalendarStore(loadCalendar());
   }, []);
 
   const homepageDomains = useMemo(() => {
@@ -304,6 +450,14 @@ export default function HomePage() {
         domainName: acronymMap.get(`${r.domainCode}:${r.acronym}`)?.domainName ?? r.domainCode,
       }));
   }, [masteryStore]);
+
+  const activityDates = useMemo(() => {
+    const dates = new Set<string>();
+    Object.values(progressStore).forEach((p) => {
+      if (p.completedAt) dates.add(p.completedAt.slice(0, 10));
+    });
+    return dates;
+  }, [progressStore]);
 
   const lastActiveDomain = useMemo(() => {
     const withDates = [...homepageDomains]
@@ -419,6 +573,10 @@ export default function HomePage() {
             value={`${recentMissCount}`}
             sub="Waiting for review"
           />
+        </section>
+
+        <section className="mt-5">
+          <CalendarWidget store={calendarStore} activityDates={activityDates} />
         </section>
 
         {weakSpots.length > 0 && (

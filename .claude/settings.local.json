@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "mcp__Claude_Preview__preview_start",
+      "Bash(netstat -ano)",
+      "Bash(findstr :3000)",
+      "Bash(findstr LISTENING)",
+      "Bash(taskkill /PID 13760 /F)",
+      "PowerShell(Stop-Process -Id 13760 -Force)",
+      "mcp__Claude_in_Chrome__list_connected_browsers",
+      "Bash(npx tsc *)"
+    ]
+  }
+}
