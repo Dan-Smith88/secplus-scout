@@ -6,10 +6,6 @@ import {
   CheckCircle2,
   Target,
   AlertTriangle,
-  Layers3,
-  Library,
-  Brain,
-  SquareStack,
   ChevronRight,
   CircleGauge,
   History,
@@ -74,59 +70,6 @@ function StatCard({
   );
 }
 
-function ActionCard({
-  href,
-  icon: Icon,
-  eyebrow,
-  title,
-  description,
-  meta,
-  primary = false,
-  badge,
-}: {
-  href: string;
-  icon: LucideIcon;
-  eyebrow: string;
-  title: string;
-  description: string;
-  meta?: string;
-  primary?: boolean;
-  badge?: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className={`group rounded-[1.5rem] border p-4 transition ${
-        primary
-          ? "border-cyan-400/35 bg-[linear-gradient(135deg,rgba(8,145,178,0.24),rgba(15,23,42,0.78))] shadow-[0_24px_90px_rgba(8,145,178,0.20)]"
-          : "border-white/10 bg-slate-950/50 hover:border-cyan-400/25 hover:bg-cyan-400/[0.05]"
-      }`}
-    >
-      <div className="flex items-start justify-between gap-4">
-        <div className="rounded-xl border border-white/10 bg-white/[0.04] p-2.5">
-          <Icon className="h-5 w-5 text-cyan-300" />
-        </div>
-        <ChevronRight className="h-5 w-5 text-slate-500 transition group-hover:translate-x-0.5 group-hover:text-cyan-300" />
-      </div>
-
-      <div className="mt-4 flex items-center gap-2">
-        <div className="text-[11px] uppercase tracking-[0.22em] text-slate-500">
-          {eyebrow}
-        </div>
-        {badge ? (
-          <span className="rounded-full border border-amber-300/25 bg-amber-400/10 px-2 py-0.5 text-[10px] font-medium uppercase tracking-[0.18em] text-amber-200">
-            {badge}
-          </span>
-        ) : null}
-      </div>
-
-      <div className="mt-2 text-xl font-semibold tracking-tight text-white">{title}</div>
-      <div className="mt-2 text-sm leading-6 text-slate-300">{description}</div>
-
-      {meta ? <div className="mt-3 text-sm font-medium text-cyan-300">{meta}</div> : null}
-    </Link>
-  );
-}
 
 function SummaryCard({
   icon: Icon,
@@ -494,57 +437,44 @@ export default function HomePage() {
 
       <main className="mx-auto max-w-7xl px-6 py-8">
         <section className="rounded-[2rem] border border-white/10 bg-slate-950/45 p-6 shadow-[0_12px_40px_rgba(2,6,23,0.35)]">
-          <div className="max-w-3xl">
-            <div className="text-sm font-medium text-cyan-300">Dashboard</div>
-            <h1 className="mt-2 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
-              Study Dashboard
-            </h1>
-            <p className="mt-4 text-base text-slate-300 sm:text-lg">
-              Track progress and launch study modes.
-            </p>
-            <p className="mt-3 text-sm text-slate-500">
-              New here? Start with Quizzes, or pick a domain below.
-            </p>
-          </div>
+          <div className="flex flex-wrap items-end justify-between gap-6">
+            <div>
+              <div className="text-sm font-medium text-cyan-300">Dashboard</div>
+              <h1 className="mt-2 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+                Study Dashboard
+              </h1>
+              <p className="mt-3 text-base text-slate-400">
+                Track your progress and pick up where you left off.
+              </p>
+            </div>
 
-          <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <ActionCard
-              href="/quiz"
-              icon={Layers3}
-              eyebrow="Quizzes"
-              title="Quizzes"
-              description="Start or continue a quiz by domain or mixed mode."
-              meta="Best place to begin"
-              badge="Start here"
-              primary
-            />
-
-            <ActionCard
-              href="/mastery"
-              icon={Library}
-              eyebrow="Flashcards"
-              title="Flashcards"
-              description="Open the acronym mastery hub for drills and review."
-              meta="Mastery training hub"
-            />
-
-            <ActionCard
-              href="/mastery/daily"
-              icon={Brain}
-              eyebrow="Daily review"
-              title="Daily Review"
-              description="Run today’s rotating drill for quick reps."
-              meta="Today’s rotating set"
-            />
-
-            <ActionCard
-              href="/mastery/all"
-              icon={SquareStack}
-              eyebrow="Reference"
-              title="All Acronyms"
-              description="Browse the full glossary and term library."
-              meta="Full acronym list"
-            />
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                href="/quiz"
+                className="inline-flex items-center gap-2 rounded-full bg-cyan-400 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-cyan-300"
+              >
+                Start quiz
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+              <Link
+                href="/mastery/daily"
+                className="inline-flex items-center rounded-full border border-white/10 px-5 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white"
+              >
+                Daily review
+              </Link>
+              <Link
+                href="/mastery"
+                className="inline-flex items-center rounded-full border border-white/10 px-5 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white"
+              >
+                Flashcards
+              </Link>
+              <Link
+                href="/mastery/all"
+                className="inline-flex items-center rounded-full border border-white/10 px-5 py-2.5 text-sm font-medium text-slate-300 transition hover:bg-white/5 hover:text-white"
+              >
+                All acronyms
+              </Link>
+            </div>
           </div>
         </section>
 

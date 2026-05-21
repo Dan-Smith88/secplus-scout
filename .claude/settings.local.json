@@ -9,7 +9,8 @@
       "Bash(taskkill /PID 13760 /F)",
       "PowerShell(Stop-Process -Id 13760 -Force)",
       "mcp__Claude_in_Chrome__list_connected_browsers",
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force })"
     ]
   }
 }
