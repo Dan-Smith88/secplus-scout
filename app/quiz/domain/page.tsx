@@ -200,7 +200,11 @@ export default function DomainQuizPage() {
     if (!isMixedQuiz && singleDomain) {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        const existing = raw ? JSON.parse(raw) : {};
+        const parsed = raw ? JSON.parse(raw) : {};
+        const existing: Record<string, unknown> =
+          typeof parsed === "object" && parsed !== null && !Array.isArray(parsed)
+            ? parsed
+            : {};
 
         existing[singleDomain.code] = {
           percent: percentage,

@@ -179,7 +179,7 @@ export const domains: Domain[] = [
       },
       {
         acronym: "CVE",
-        full: "Common Vulnerability Enumeration",
+        full: "Common Vulnerabilities and Exposures",
         plain:
           "A standardized identifier for publicly known vulnerabilities.",
         confusion: "CVE vs CVSS",
@@ -433,7 +433,7 @@ export const domains: Domain[] = [
       },
       {
         acronym: "SOAR",
-        full: "Security Orchestration, Automation, Response",
+        full: "Security Orchestration, Automation, and Response",
         plain:
           "A platform that helps automate and coordinate security workflows and response actions.",
         confusion: "SOAR vs SIEM",
@@ -576,7 +576,7 @@ export const domains: Domain[] = [
       },
       {
         acronym: "SAML",
-        full: "Security Assertions Markup Language",
+        full: "Security Assertion Markup Language",
         plain:
           "A federation standard used to exchange authentication and authorization data.",
         confusion: "SAML vs OAuth",
@@ -677,7 +677,7 @@ export const domains: Domain[] = [
       },
       {
         acronym: "MTTR",
-        full: "Mean Time to Recover",
+        full: "Mean Time to Repair",
         plain:
           "A resilience metric describing how long it takes to recover service.",
         confusion: "MTTR vs MTBF",

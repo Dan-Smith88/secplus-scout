@@ -17,7 +17,9 @@ export function loadCalendar(): CalendarStore {
     if (raw) {
       const parsed = JSON.parse(raw);
       return {
-        plannedDays: Array.isArray(parsed.plannedDays) ? parsed.plannedDays : [],
+        plannedDays: Array.isArray(parsed.plannedDays)
+            ? parsed.plannedDays.filter((d: unknown) => typeof d === "string")
+            : [],
         examDate: typeof parsed.examDate === "string" ? parsed.examDate : null,
         dayEntries:
           typeof parsed.dayEntries === "object" &&

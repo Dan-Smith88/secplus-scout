@@ -10,7 +10,27 @@
       "PowerShell(Stop-Process -Id 13760 -Force)",
       "mcp__Claude_in_Chrome__list_connected_browsers",
       "Bash(npx tsc *)",
-      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force })"
+      "PowerShell(Get-NetTCPConnection -LocalPort 3000 -State Listen | Select-Object -ExpandProperty OwningProcess | ForEach-Object { Stop-Process -Id $_ -Force })",
+      "WebSearch",
+      "WebFetch(domain:networklogician.com)",
+      "WebFetch(domain:www.getcertifiedgetahead.com)",
+      "WebFetch(domain:quizlet.com)",
+      "WebFetch(domain:studylib.net)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:crucialexams.com)",
+      "WebFetch(domain:partners.comptia.org)",
+      "WebFetch(domain:assets.ctfassets.net)",
+      "WebFetch(domain:www.examcompass.com)",
+      "WebFetch(domain:proftia.com)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:www.scribd.com)",
+      "WebFetch(domain:www.brainscape.com)",
+      "WebFetch(domain:www.docsity.com)",
+      "WebFetch(domain:www.studocu.com)",
+      "WebFetch(domain:techycomb.com)",
+      "WebFetch(domain:destcert.com)",
+      "WebFetch(domain:www.innovativelearning.eu)",
+      "WebFetch(domain:www.professormesser.com)"
     ]
   }
 }
