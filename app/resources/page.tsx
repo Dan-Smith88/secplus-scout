@@ -59,15 +59,16 @@ const categories: Category[] = [
     accent: "violet",
     resources: [
       {
-        name: "Professor Messer — SY0-701 Course",
-        description: "Free full-length video course aligned to every SY0-701 objective. Widely considered the best free resource.",
-        url: "https://www.professormesser.com/security-plus/sy0-701/sy0-701-video/sy0-701-comptia-security-plus-course/",
+        name: "Professor Messer — Free YouTube Course",
+        description: "121 free videos covering every SY0-701 objective, organized by domain. Widely considered the best free Security+ resource available.",
+        url: "https://www.youtube.com/playlist?list=PLG49S3nxzAnl4QDVqK-hOnoqcSKEIDDuv",
         badge: "Free",
       },
       {
-        name: "Professor Messer — SY0-701 Study Guide",
-        description: "Concise PDF study guide covering all exam domains. Available for purchase or as a free reading companion.",
+        name: "Professor Messer — Course Notes & Practice Exams",
+        description: "Paid PDF course notes and practice exams to accompany the free video course. Covers all domains with exam-focused summaries.",
         url: "https://www.professormesser.com/sy0-701-success-bundle/",
+        badge: "Paid",
       },
       {
         name: "Get Certified Get Ahead (SY0-701)",
