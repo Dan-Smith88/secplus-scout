@@ -41,13 +41,13 @@ const categories: Category[] = [
       {
         name: "CompTIA CertMaster Learn",
         description: "CompTIA's official self-paced e-learning platform for Security+.",
-        url: "https://www.comptia.org/training/certmaster-learn/security",
+        url: "https://www.comptia.org/en-us/resources/certmaster-training/learn/",
         badge: "Paid",
       },
       {
         name: "CompTIA CertMaster Practice",
         description: "Official adaptive practice test engine with performance feedback.",
-        url: "https://www.comptia.org/training/certmaster-practice/security",
+        url: "https://www.comptia.org/en-us/resources/certmaster-training/practice/",
         badge: "Paid",
       },
     ],
