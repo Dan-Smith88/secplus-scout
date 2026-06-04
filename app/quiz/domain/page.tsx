@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { domains } from "../../../lib/securityData";
 import { loadMastery, saveMastery, upsertMasteryResult } from "../../../lib/masteryStorage";
@@ -23,7 +23,7 @@ type QuizItem = {
   domainWeight: number;
 };
 
-export default function DomainQuizPage() {
+function DomainQuizContent() {
   const searchParams = useSearchParams();
   const code = decodeURIComponent(searchParams.get("code") || "");
 
@@ -440,5 +440,13 @@ export default function DomainQuizPage() {
         )}
       </div>
     </main>
+  );
+}
+
+export default function DomainQuizPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#07111f] flex items-center justify-center text-white">Loading quiz...</div>}>
+      <DomainQuizContent />
+    </Suspense>
   );
 }
