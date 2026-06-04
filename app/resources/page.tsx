@@ -67,12 +67,12 @@ const categories: Category[] = [
       {
         name: "Professor Messer — SY0-701 Study Guide",
         description: "Concise PDF study guide covering all exam domains. Available for purchase or as a free reading companion.",
-        url: "https://www.professormesser.com/security-plus/sy0-701/sy0-701-course-materials/",
+        url: "https://www.professormesser.com/sy0-701-success-bundle/",
       },
       {
         name: "Get Certified Get Ahead (SY0-701)",
         description: "Darril Gibson's comprehensive study guide. The appendix mirrors the official CompTIA acronym list.",
-        url: "https://www.getcertifiedgetahead.com/sp701/",
+        url: "https://www.amazon.com/CompTIA-Security-Get-Certified-Ahead/dp/B0CM13W88J",
       },
       {
         name: "Jason Dion — Security+ on Udemy",
@@ -91,19 +91,19 @@ const categories: Category[] = [
       {
         name: "Professor Messer Practice Exams",
         description: "Three full-length practice exams written by Professor Messer, closely modelled on the real test.",
-        url: "https://www.professormesser.com/security-plus/sy0-701/sy0-701-course-materials/",
+        url: "https://www.professormesser.com/amember/signup/sy0701pe",
         badge: "Paid",
       },
       {
         name: "ExamCompass — Free SY0-701 Quizzes",
         description: "Free domain-by-domain practice quizzes, including a dedicated acronym quiz.",
-        url: "https://www.examcompass.com/comptia-security-plus-certification-practice-tests",
+        url: "https://www.examcompass.com/comptia-security-plus-practice-test-1-exam-sy0-701",
         badge: "Free",
       },
       {
         name: "Jason Dion — Practice Tests on Udemy",
         description: "Six full practice exams with detailed explanations for every answer choice.",
-        url: "https://www.udemy.com/course/comptia-security-practice-exams/",
+        url: "https://www.udemy.com/course/comptia-security-sy0-701-practice-exams/",
         badge: "Paid",
       },
     ],
@@ -117,7 +117,7 @@ const categories: Category[] = [
       {
         name: "MITRE CVE",
         description: "The official Common Vulnerabilities and Exposures database maintained by MITRE.",
-        url: "https://cve.mitre.org/",
+        url: "https://www.cve.org/",
         badge: "Free",
       },
       {

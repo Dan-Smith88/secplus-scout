@@ -432,7 +432,7 @@ export default function HomePage() {
   }, [homepageDomains]);
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.10),_transparent_30%),linear-gradient(180deg,_#020617_0%,_#06101f_100%)] text-white">
+    <div className="bg-[radial-gradient(circle_at_top,_rgba(34,211,238,0.10),_transparent_30%),linear-gradient(180deg,_#020617_0%,_#06101f_100%)] text-white">
       <TopNav />
 
       <main className="mx-auto max-w-7xl px-6 py-8">
